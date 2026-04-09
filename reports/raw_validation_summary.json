@@ -1,0 +1,1007 @@
+{
+  "categorical_cardinality_summary": {
+    "A1Cresult": {
+      "top_values": {
+        "<NA>": 84748,
+        ">7": 3812,
+        ">8": 8216,
+        "Norm": 4990
+      },
+      "unique_non_null_count": 3
+    },
+    "acarbose": {
+      "top_values": {
+        "Down": 3,
+        "No": 101458,
+        "Steady": 295,
+        "Up": 10
+      },
+      "unique_non_null_count": 4
+    },
+    "acetohexamide": {
+      "top_values": {
+        "No": 101765,
+        "Steady": 1
+      },
+      "unique_non_null_count": 2
+    },
+    "age": {
+      "top_values": {
+        "[40-50)": 9685,
+        "[50-60)": 17256,
+        "[60-70)": 22483,
+        "[70-80)": 26068,
+        "[80-90)": 17197
+      },
+      "unique_non_null_count": 10
+    },
+    "change": {
+      "top_values": {
+        "Ch": 47011,
+        "No": 54755
+      },
+      "unique_non_null_count": 2
+    },
+    "chlorpropamide": {
+      "top_values": {
+        "Down": 1,
+        "No": 101680,
+        "Steady": 79,
+        "Up": 6
+      },
+      "unique_non_null_count": 4
+    },
+    "citoglipton": {
+      "top_values": {
+        "No": 101766
+      },
+      "unique_non_null_count": 1
+    },
+    "diabetesMed": {
+      "top_values": {
+        "No": 23403,
+        "Yes": 78363
+      },
+      "unique_non_null_count": 2
+    },
+    "diag_1": {
+      "top_values": {
+        "410": 3614,
+        "414": 6581,
+        "428": 6862,
+        "486": 3508,
+        "786": 4016
+      },
+      "unique_non_null_count": 717
+    },
+    "diag_2": {
+      "top_values": {
+        "250": 6071,
+        "276": 6752,
+        "401": 3736,
+        "427": 5036,
+        "428": 6662
+      },
+      "unique_non_null_count": 749
+    },
+    "diag_3": {
+      "top_values": {
+        "250": 11555,
+        "276": 5175,
+        "401": 8289,
+        "427": 3955,
+        "428": 4577
+      },
+      "unique_non_null_count": 790
+    },
+    "examide": {
+      "top_values": {
+        "No": 101766
+      },
+      "unique_non_null_count": 1
+    },
+    "gender": {
+      "top_values": {
+        "Female": 54708,
+        "Male": 47055,
+        "Unknown/Invalid": 3
+      },
+      "unique_non_null_count": 3
+    },
+    "glimepiride": {
+      "top_values": {
+        "Down": 194,
+        "No": 96575,
+        "Steady": 4670,
+        "Up": 327
+      },
+      "unique_non_null_count": 4
+    },
+    "glimepiride-pioglitazone": {
+      "top_values": {
+        "No": 101765,
+        "Steady": 1
+      },
+      "unique_non_null_count": 2
+    },
+    "glipizide": {
+      "top_values": {
+        "Down": 560,
+        "No": 89080,
+        "Steady": 11356,
+        "Up": 770
+      },
+      "unique_non_null_count": 4
+    },
+    "glipizide-metformin": {
+      "top_values": {
+        "No": 101753,
+        "Steady": 13
+      },
+      "unique_non_null_count": 2
+    },
+    "glyburide": {
+      "top_values": {
+        "Down": 564,
+        "No": 91116,
+        "Steady": 9274,
+        "Up": 812
+      },
+      "unique_non_null_count": 4
+    },
+    "glyburide-metformin": {
+      "top_values": {
+        "Down": 6,
+        "No": 101060,
+        "Steady": 692,
+        "Up": 8
+      },
+      "unique_non_null_count": 4
+    },
+    "insulin": {
+      "top_values": {
+        "Down": 12218,
+        "No": 47383,
+        "Steady": 30849,
+        "Up": 11316
+      },
+      "unique_non_null_count": 4
+    },
+    "max_glu_serum": {
+      "top_values": {
+        "<NA>": 96420,
+        ">200": 1485,
+        ">300": 1264,
+        "Norm": 2597
+      },
+      "unique_non_null_count": 3
+    },
+    "medical_specialty": {
+      "top_values": {
+        "?": 49949,
+        "Cardiology": 5352,
+        "Emergency/Trauma": 7565,
+        "Family/GeneralPractice": 7440,
+        "InternalMedicine": 14635
+      },
+      "unique_non_null_count": 73
+    },
+    "metformin": {
+      "top_values": {
+        "Down": 575,
+        "No": 81778,
+        "Steady": 18346,
+        "Up": 1067
+      },
+      "unique_non_null_count": 4
+    },
+    "metformin-pioglitazone": {
+      "top_values": {
+        "No": 101765,
+        "Steady": 1
+      },
+      "unique_non_null_count": 2
+    },
+    "metformin-rosiglitazone": {
+      "top_values": {
+        "No": 101764,
+        "Steady": 2
+      },
+      "unique_non_null_count": 2
+    },
+    "miglitol": {
+      "top_values": {
+        "Down": 5,
+        "No": 101728,
+        "Steady": 31,
+        "Up": 2
+      },
+      "unique_non_null_count": 4
+    },
+    "nateglinide": {
+      "top_values": {
+        "Down": 11,
+        "No": 101063,
+        "Steady": 668,
+        "Up": 24
+      },
+      "unique_non_null_count": 4
+    },
+    "payer_code": {
+      "top_values": {
+        "?": 40256,
+        "BC": 4655,
+        "HM": 6274,
+        "MC": 32439,
+        "SP": 5007
+      },
+      "unique_non_null_count": 18
+    },
+    "pioglitazone": {
+      "top_values": {
+        "Down": 118,
+        "No": 94438,
+        "Steady": 6976,
+        "Up": 234
+      },
+      "unique_non_null_count": 4
+    },
+    "race": {
+      "top_values": {
+        "?": 2273,
+        "AfricanAmerican": 19210,
+        "Caucasian": 76099,
+        "Hispanic": 2037,
+        "Other": 1506
+      },
+      "unique_non_null_count": 6
+    },
+    "readmitted": {
+      "top_values": {
+        "<30": 11357,
+        ">30": 35545,
+        "NO": 54864
+      },
+      "unique_non_null_count": 3
+    },
+    "repaglinide": {
+      "top_values": {
+        "Down": 45,
+        "No": 100227,
+        "Steady": 1384,
+        "Up": 110
+      },
+      "unique_non_null_count": 4
+    },
+    "rosiglitazone": {
+      "top_values": {
+        "Down": 87,
+        "No": 95401,
+        "Steady": 6100,
+        "Up": 178
+      },
+      "unique_non_null_count": 4
+    },
+    "tolazamide": {
+      "top_values": {
+        "No": 101727,
+        "Steady": 38,
+        "Up": 1
+      },
+      "unique_non_null_count": 3
+    },
+    "tolbutamide": {
+      "top_values": {
+        "No": 101743,
+        "Steady": 23
+      },
+      "unique_non_null_count": 2
+    },
+    "troglitazone": {
+      "top_values": {
+        "No": 101763,
+        "Steady": 3
+      },
+      "unique_non_null_count": 2
+    },
+    "weight": {
+      "top_values": {
+        "?": 98569,
+        "[100-125)": 625,
+        "[125-150)": 145,
+        "[50-75)": 897,
+        "[75-100)": 1336
+      },
+      "unique_non_null_count": 10
+    }
+  },
+  "categorical_columns": [
+    "race",
+    "gender",
+    "age",
+    "weight",
+    "payer_code",
+    "medical_specialty",
+    "diag_1",
+    "diag_2",
+    "diag_3",
+    "max_glu_serum",
+    "A1Cresult",
+    "metformin",
+    "repaglinide",
+    "nateglinide",
+    "chlorpropamide",
+    "glimepiride",
+    "acetohexamide",
+    "glipizide",
+    "glyburide",
+    "tolbutamide",
+    "pioglitazone",
+    "rosiglitazone",
+    "acarbose",
+    "miglitol",
+    "troglitazone",
+    "tolazamide",
+    "examide",
+    "citoglipton",
+    "insulin",
+    "glyburide-metformin",
+    "glipizide-metformin",
+    "glimepiride-pioglitazone",
+    "metformin-rosiglitazone",
+    "metformin-pioglitazone",
+    "change",
+    "diabetesMed",
+    "readmitted"
+  ],
+  "duplicate_rows": 0,
+  "encounter_id_unique": true,
+  "identifier_summary": {
+    "encounter_id_duplicate_count": 0,
+    "encounter_id_exists": true,
+    "encounter_id_non_null_count": 101766,
+    "encounter_id_unique": true,
+    "encounter_id_unique_count": 101766,
+    "patient_nbr_exists": true,
+    "patient_nbr_repeated_row_count": 47021,
+    "patient_nbr_top_repeat_counts": {
+      "1660293": 23,
+      "23199021": 23,
+      "43140906": 28,
+      "88227540": 23,
+      "88785891": 40
+    },
+    "patient_nbr_unique_count": 71518
+  },
+  "missingness_summary": [
+    {
+      "column": "weight",
+      "empty_string_count": 0,
+      "missing_count": 98569,
+      "missing_rate": 0.9685847925633315,
+      "question_mark_count": 98569,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "max_glu_serum",
+      "empty_string_count": 0,
+      "missing_count": 96420,
+      "missing_rate": 0.9474677200636755,
+      "question_mark_count": 0,
+      "standard_null_count": 96420,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "A1Cresult",
+      "empty_string_count": 0,
+      "missing_count": 84748,
+      "missing_rate": 0.8327732248491637,
+      "question_mark_count": 0,
+      "standard_null_count": 84748,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "medical_specialty",
+      "empty_string_count": 0,
+      "missing_count": 49949,
+      "missing_rate": 0.49082208203132677,
+      "question_mark_count": 49949,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "payer_code",
+      "empty_string_count": 0,
+      "missing_count": 40256,
+      "missing_rate": 0.395574160328597,
+      "question_mark_count": 40256,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "race",
+      "empty_string_count": 0,
+      "missing_count": 2273,
+      "missing_rate": 0.022335554114340742,
+      "question_mark_count": 2273,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "diag_3",
+      "empty_string_count": 0,
+      "missing_count": 1423,
+      "missing_rate": 0.013983059174970029,
+      "question_mark_count": 1423,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "diag_2",
+      "empty_string_count": 0,
+      "missing_count": 358,
+      "missing_rate": 0.0035178743391702533,
+      "question_mark_count": 358,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "diag_1",
+      "empty_string_count": 0,
+      "missing_count": 21,
+      "missing_rate": 0.0002063557573256294,
+      "question_mark_count": 21,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "encounter_id",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "patient_nbr",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "gender",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "age",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "admission_type_id",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "discharge_disposition_id",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "admission_source_id",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "time_in_hospital",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "num_lab_procedures",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "num_procedures",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "num_medications",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "number_outpatient",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "number_emergency",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "number_inpatient",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "number_diagnoses",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "metformin",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "repaglinide",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "nateglinide",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "chlorpropamide",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "glimepiride",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "acetohexamide",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "glipizide",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "glyburide",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "tolbutamide",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "pioglitazone",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "rosiglitazone",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "acarbose",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "miglitol",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "troglitazone",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "tolazamide",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "examide",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "citoglipton",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "insulin",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "glyburide-metformin",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "glipizide-metformin",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "glimepiride-pioglitazone",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "metformin-rosiglitazone",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "metformin-pioglitazone",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "change",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "diabetesMed",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    },
+    {
+      "column": "readmitted",
+      "empty_string_count": 0,
+      "missing_count": 0,
+      "missing_rate": 0.0,
+      "question_mark_count": 0,
+      "standard_null_count": 0,
+      "whitespace_only_count": 0
+    }
+  ],
+  "n_columns": 50,
+  "n_rows": 101766,
+  "null_like_counts": {
+    "empty_string": 0,
+    "question_mark": 192849,
+    "standard_nulls": 181168,
+    "whitespace_only": 0
+  },
+  "numeric_columns": [
+    "encounter_id",
+    "patient_nbr",
+    "admission_type_id",
+    "discharge_disposition_id",
+    "admission_source_id",
+    "time_in_hospital",
+    "num_lab_procedures",
+    "num_procedures",
+    "num_medications",
+    "number_outpatient",
+    "number_emergency",
+    "number_inpatient",
+    "number_diagnoses"
+  ],
+  "numeric_descriptive_summary": {
+    "admission_source_id": {
+      "25%": 1.0,
+      "50%": 7.0,
+      "75%": 7.0,
+      "count": 101766.0,
+      "max": 25.0,
+      "mean": 5.754436648782501,
+      "min": 1.0,
+      "std": 4.064080834283899
+    },
+    "admission_type_id": {
+      "25%": 1.0,
+      "50%": 1.0,
+      "75%": 3.0,
+      "count": 101766.0,
+      "max": 8.0,
+      "mean": 2.024006053102215,
+      "min": 1.0,
+      "std": 1.4454028297561203
+    },
+    "discharge_disposition_id": {
+      "25%": 1.0,
+      "50%": 1.0,
+      "75%": 4.0,
+      "count": 101766.0,
+      "max": 28.0,
+      "mean": 3.7156417664052825,
+      "min": 1.0,
+      "std": 5.280165509299271
+    },
+    "encounter_id": {
+      "25%": 84961194.0,
+      "50%": 152388987.0,
+      "75%": 230270887.5,
+      "count": 101766.0,
+      "max": 443867222.0,
+      "mean": 165201645.6229782,
+      "min": 12522.0,
+      "std": 102640295.98345716
+    },
+    "num_lab_procedures": {
+      "25%": 31.0,
+      "50%": 44.0,
+      "75%": 57.0,
+      "count": 101766.0,
+      "max": 132.0,
+      "mean": 43.09564098028811,
+      "min": 1.0,
+      "std": 19.674362249142124
+    },
+    "num_medications": {
+      "25%": 10.0,
+      "50%": 15.0,
+      "75%": 20.0,
+      "count": 101766.0,
+      "max": 81.0,
+      "mean": 16.021844230882614,
+      "min": 1.0,
+      "std": 8.127566209167284
+    },
+    "num_procedures": {
+      "25%": 0.0,
+      "50%": 1.0,
+      "75%": 2.0,
+      "count": 101766.0,
+      "max": 6.0,
+      "mean": 1.339730361810428,
+      "min": 0.0,
+      "std": 1.7058069791211592
+    },
+    "number_diagnoses": {
+      "25%": 6.0,
+      "50%": 8.0,
+      "75%": 9.0,
+      "count": 101766.0,
+      "max": 16.0,
+      "mean": 7.422606764538254,
+      "min": 1.0,
+      "std": 1.9336001449974285
+    },
+    "number_emergency": {
+      "25%": 0.0,
+      "50%": 0.0,
+      "75%": 0.0,
+      "count": 101766.0,
+      "max": 76.0,
+      "mean": 0.19783621248747127,
+      "min": 0.0,
+      "std": 0.9304722684224636
+    },
+    "number_inpatient": {
+      "25%": 0.0,
+      "50%": 0.0,
+      "75%": 1.0,
+      "count": 101766.0,
+      "max": 21.0,
+      "mean": 0.635565906098304,
+      "min": 0.0,
+      "std": 1.2628632900973233
+    },
+    "number_outpatient": {
+      "25%": 0.0,
+      "50%": 0.0,
+      "75%": 0.0,
+      "count": 101766.0,
+      "max": 42.0,
+      "mean": 0.36935715268360747,
+      "min": 0.0,
+      "std": 1.267265096532678
+    },
+    "patient_nbr": {
+      "25%": 23413221.0,
+      "50%": 45505143.0,
+      "75%": 87545949.75,
+      "count": 101766.0,
+      "max": 189502619.0,
+      "mean": 54330400.694947235,
+      "min": 135.0,
+      "std": 38696359.34653421
+    },
+    "time_in_hospital": {
+      "25%": 2.0,
+      "50%": 4.0,
+      "75%": 6.0,
+      "count": 101766.0,
+      "max": 14.0,
+      "mean": 4.395986871843248,
+      "min": 1.0,
+      "std": 2.985107767471267
+    }
+  },
+  "patient_nbr_unique_count": 71518,
+  "required_columns_present": {
+    "age": true,
+    "encounter_id": true,
+    "gender": true,
+    "num_lab_procedures": true,
+    "num_medications": true,
+    "number_emergency": true,
+    "number_inpatient": true,
+    "number_outpatient": true,
+    "patient_nbr": true,
+    "race": true,
+    "readmitted": true,
+    "time_in_hospital": true
+  },
+  "target_distribution": {
+    "<30": 11357,
+    ">30": 35545,
+    "NO": 54864
+  },
+  "warnings": [
+    "Found 192849 '?' token(s) representing missing data.",
+    "High missingness (>=30%) detected in: weight, max_glu_serum, A1Cresult, medical_specialty, payer_code."
+  ]
+}

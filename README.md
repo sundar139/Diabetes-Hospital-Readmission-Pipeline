@@ -56,6 +56,29 @@ Copy-Item .env.example .env
 
 1. Place dataset at `data/raw/diabetic_data.csv`.
 
+## Raw Validation Before Preprocessing
+
+Run raw-data validation and reporting:
+
+```powershell
+uv run python scripts/run_raw_validation.py
+```
+
+Why this step exists:
+
+- verifies schema assumptions before any transformations
+- quantifies missing and null-like values (`?`, empty strings, whitespace-only tokens, and standard nulls)
+- surfaces identifier and target integrity risks early
+- creates deterministic artifacts for reproducibility and review
+
+Generated artifacts:
+
+- `reports/raw_validation_report.md`
+- `reports/raw_validation_summary.json`
+- `reports/data_dictionary.md`
+- `artifacts/raw_validation_summary.json`
+- `reports/figures/readmitted_class_distribution.png` (generated when matplotlib is available)
+
 ## Cross-Platform Command Reference
 
 Run lint:
@@ -74,6 +97,12 @@ Run healthcheck:
 
 ```powershell
 uv run python scripts/healthcheck.py
+```
+
+Run raw validation:
+
+```powershell
+uv run python scripts/run_raw_validation.py
 ```
 
 Print project paths and active config:
