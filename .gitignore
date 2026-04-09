@@ -1,0 +1,44 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+
+# Test and lint caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Data and generated outputs
+data/raw/*.csv
+data/raw/*.parquet
+data/processed/**
+!data/processed/.gitkeep
+artifacts/**
+!artifacts/.gitkeep
+reports/figures/**
+!reports/figures/.gitkeep
+mlruns/
+
+# Misc
+*.db
+Thumbs.db
+.DS_Store

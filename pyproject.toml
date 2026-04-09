@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "diabetes-hospital-readmission-pipeline"
+version = "0.1.0"
+description = "Production-style foundation for diabetic patient readmission prediction with MLOps and LLMOps."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "pyarrow>=16.0.0",
+    "scikit-learn>=1.5.0",
+    "xgboost>=2.1.0",
+    "imbalanced-learn>=0.12.0",
+    "shap>=0.46.0",
+    "joblib>=1.4.0",
+    "mlflow>=2.16.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.31.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.5.0",
+    "python-dotenv>=1.0.1",
+    "httpx>=0.27.0",
+    "boruta>=0.4.3",
+]
+
+[project.optional-dependencies]
+eda = [
+    "matplotlib>=3.9.0",
+    "seaborn>=0.13.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "ruff>=0.6.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "scripts", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "W"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra"
