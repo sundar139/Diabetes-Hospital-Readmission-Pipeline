@@ -64,8 +64,8 @@ def build_demo_summary_markdown(
     explanation_mode = explain_response.get("explanation_mode")
 
     monitoring_drift = monitoring_summary.get("binary_probability_drift", {})
-    drift_status = monitoring_drift.get("status")
-    drift_psi = monitoring_drift.get("psi")
+    drift_status = monitoring_drift.get("status", "not_generated")
+    drift_psi = monitoring_drift.get("psi", "n/a")
 
     output_lines = [
         "# Demo Summary",

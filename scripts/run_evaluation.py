@@ -124,9 +124,9 @@ def _render_model_comparison_report(
         if not isinstance(runtime_payload, dict):
             runtime_payload = {}
 
-        requested = runtime_payload.get("xgboost_device_requested")
+        requested = payload.get("xgboost_device_requested")
         if requested is None:
-            requested = payload.get("xgboost_device_requested")
+            requested = runtime_payload.get("xgboost_device_requested")
 
         used_training = payload.get("xgboost_device_used_for_training")
         if used_training is None:
