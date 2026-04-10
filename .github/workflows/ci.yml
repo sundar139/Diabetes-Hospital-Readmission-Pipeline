@@ -31,7 +31,7 @@ jobs:
           python -c "import streamlit_app; assert hasattr(streamlit_app, 'main')"
 
       - name: Frontend lightweight tests
-        run: pytest tests/test_streamlit_frontend_lightweight.py
+        run: python -m pytest tests/test_streamlit_frontend_lightweight.py
 
   full-stack:
     if: github.event_name == 'workflow_dispatch'
