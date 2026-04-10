@@ -1,0 +1,201 @@
+{
+  "class_labels": [
+    "NO",
+    ">30",
+    "<30"
+  ],
+  "evaluation_dir": "C:\\Users\\rohit\\Documents\\Personal Projects\\Diabetes Hospital Readmission Pipeline\\artifacts\\evaluations\\multiclass\\multiclass_xgboost_sampling-none_fs-none",
+  "feature_columns": [
+    "race",
+    "gender",
+    "age",
+    "weight",
+    "admission_type_id",
+    "discharge_disposition_id",
+    "admission_source_id",
+    "time_in_hospital",
+    "payer_code",
+    "medical_specialty",
+    "num_lab_procedures",
+    "num_procedures",
+    "num_medications",
+    "number_outpatient",
+    "number_emergency",
+    "number_inpatient",
+    "diag_1",
+    "diag_2",
+    "diag_3",
+    "number_diagnoses",
+    "max_glu_serum",
+    "A1Cresult",
+    "metformin",
+    "repaglinide",
+    "nateglinide",
+    "chlorpropamide",
+    "glimepiride",
+    "acetohexamide",
+    "glipizide",
+    "glyburide",
+    "tolbutamide",
+    "pioglitazone",
+    "rosiglitazone",
+    "acarbose",
+    "miglitol",
+    "troglitazone",
+    "tolazamide",
+    "examide",
+    "citoglipton",
+    "insulin",
+    "glyburide-metformin",
+    "glipizide-metformin",
+    "glimepiride-pioglitazone",
+    "metformin-rosiglitazone",
+    "metformin-pioglitazone",
+    "change",
+    "diabetesMed",
+    "recurrency",
+    "patient_severity",
+    "medication_change_ratio",
+    "utilization_intensity",
+    "complex_discharge_flag",
+    "age_bucket_risk"
+  ],
+  "feature_selection_strategy": "none",
+  "key_evaluation_metrics": {
+    "test": {
+      "accuracy": 0.7323605836498102,
+      "confusion_matrix": [
+        [
+          7484,
+          718,
+          7
+        ],
+        [
+          1682,
+          3440,
+          57
+        ],
+        [
+          373,
+          1180,
+          68
+        ]
+      ],
+      "inference_runtime": {
+        "inference_used_fallback_path": false,
+        "is_xgboost_model": true,
+        "warning": null,
+        "xgboost_device_requested": "cpu",
+        "xgboost_device_used_for_inference": "cpu"
+      },
+      "macro_f1": 0.5250409566656916,
+      "n_samples": 15009,
+      "per_class": {
+        "<30": {
+          "f1": 0.0775812892184826,
+          "precision": 0.5151515151515151,
+          "recall": 0.041949413942011106,
+          "support": 1621.0
+        },
+        ">30": {
+          "f1": 0.6541789483693068,
+          "precision": 0.6444361183964031,
+          "recall": 0.6642208920641051,
+          "support": 5179.0
+        },
+        "NO": {
+          "f1": 0.8433626324092856,
+          "precision": 0.7845686130621659,
+          "recall": 0.9116822999147277,
+          "support": 8209.0
+        }
+      }
+    },
+    "val": {
+      "accuracy": 0.7257334120889939,
+      "confusion_matrix": [
+        [
+          7418,
+          779,
+          18
+        ],
+        [
+          1686,
+          3578,
+          43
+        ],
+        [
+          396,
+          1257,
+          62
+        ]
+      ],
+      "inference_runtime": {
+        "inference_used_fallback_path": true,
+        "is_xgboost_model": true,
+        "warning": "XGBoost inference is pinned to cpu because preprocessing outputs CPU-resident features.",
+        "xgboost_device_requested": "cuda",
+        "xgboost_device_used_for_inference": "cpu"
+      },
+      "macro_f1": 0.5200661152215114,
+      "n_samples": 15237,
+      "per_class": {
+        "<30": {
+          "f1": 0.06746463547334058,
+          "precision": 0.5040650406504065,
+          "recall": 0.036151603498542274,
+          "support": 1715.0
+        },
+        ">30": {
+          "f1": 0.6552513506089186,
+          "precision": 0.6373352333452084,
+          "recall": 0.6742038816657245,
+          "support": 5307.0
+        },
+        "NO": {
+          "f1": 0.8374823595822749,
+          "precision": 0.7808421052631579,
+          "recall": 0.9029823493609251,
+          "support": 8215.0
+        }
+      }
+    }
+  },
+  "label_mapping": {
+    "0": "NO",
+    "1": ">30",
+    "2": "<30"
+  },
+  "model_family": "xgboost",
+  "sampling_strategy": "none",
+  "shap_artifacts": {
+    "shap_top_features": [
+      {
+        "feature": "numeric__admission_source_id",
+        "mean_abs_shap": 0.005941541865468025
+      },
+      {
+        "feature": "numeric__discharge_disposition_id",
+        "mean_abs_shap": 0.005861490499228239
+      },
+      {
+        "feature": "numeric__admission_type_id",
+        "mean_abs_shap": 0.004578882362693548
+      }
+    ],
+    "shap_top_features_json": "C:\\Users\\rohit\\Documents\\Personal Projects\\Diabetes Hospital Readmission Pipeline\\artifacts\\evaluations\\multiclass\\multiclass_xgboost_sampling-none_fs-none\\train_shap_top_features.json",
+    "shap_top_features_plot": "C:\\Users\\rohit\\Documents\\Personal Projects\\Diabetes Hospital Readmission Pipeline\\artifacts\\evaluations\\multiclass\\multiclass_xgboost_sampling-none_fs-none\\train_shap_top_features.png"
+  },
+  "target_column": "readmitted",
+  "task_type": "multiclass",
+  "training_timestamp_utc": "2026-04-10T05:16:32.406830+00:00",
+  "warnings": [
+    "XGBoost training used CUDA, but inference is pinned to CPU because preprocessing outputs CPU-resident feature matrices.",
+    "XGBoost inference is pinned to cpu because preprocessing outputs CPU-resident features."
+  ],
+  "xgboost_device_requested": "auto",
+  "xgboost_device_used": "cuda",
+  "xgboost_device_used_for_inference": "cpu",
+  "xgboost_device_used_for_training": "cuda",
+  "xgboost_inference_used_fallback_path": true
+}

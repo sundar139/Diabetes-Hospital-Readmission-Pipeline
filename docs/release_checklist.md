@@ -47,6 +47,14 @@ Use this checklist before tagging or presenting the repository as a final local 
 - [ ] `artifacts/demo/demo_manifest.json` exists
 - [ ] `reports/demo_summary.md` exists
 
+## Streamlit Frontend Validation
+
+- [ ] `uv run python scripts/test_streamlit_frontend_logic.py`
+- [ ] `uv run streamlit run streamlit_app.py` starts without artifact errors
+- [ ] Prediction page returns binary + multiclass outputs from local artifacts
+- [ ] Monitoring page loads `reports/monitoring_summary.json` or shows friendly generation hint
+- [ ] Project overview clearly states non-clinical demo scope
+
 ## Lint and Tests
 
 - [ ] `uv run ruff check .`
@@ -57,3 +65,4 @@ Use this checklist before tagging or presenting the repository as a final local 
 - [ ] README commands match existing scripts
 - [ ] Referenced report/artifact paths exist
 - [ ] Troubleshooting and workflow docs align with current behavior
+- [ ] Streamlit Community Cloud deployment notes match `streamlit_app.py` entrypoint

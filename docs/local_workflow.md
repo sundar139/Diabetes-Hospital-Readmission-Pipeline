@@ -125,3 +125,23 @@ Outputs:
 uv run ruff check .
 uv run pytest
 ```
+
+## 9. Streamlit Frontend (Portfolio Demo)
+
+Run the artifact-direct frontend:
+
+```powershell
+uv run streamlit run streamlit_app.py
+```
+
+Notes:
+
+- the app loads model artifacts directly from `artifacts/`
+- FastAPI and Ollama are not required for this frontend flow
+- use **Load baseline example** and **Load dummy example** in the app for quick reviewer-friendly demos
+
+Optional logic check without launching browser:
+
+```powershell
+uv run python scripts/test_streamlit_frontend_logic.py
+```

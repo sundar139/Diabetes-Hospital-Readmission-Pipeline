@@ -20,6 +20,7 @@ This repository packages a complete tabular ML lifecycle:
 - model selection across multiple estimator families
 - local MLflow tracking
 - FastAPI prediction and explanation endpoints
+- Streamlit portfolio frontend with artifact-direct predictions
 - drift-oriented monitoring reports
 - demo artifact generation for portfolio presentation
 
@@ -42,6 +43,7 @@ Core modules:
 - `src/serving`: FastAPI app and request/response schemas
 - `src/llm`: explanation generation with Ollama-first, deterministic fallback
 - `src/monitoring`: prediction logging and drift/monitoring reports
+- `src/frontend`: Streamlit UI modules for prediction, analytics, monitoring, and overview
 
 Operational entry points:
 
@@ -191,6 +193,68 @@ Run request examples and persist real responses:
 uv run python scripts/demo_prediction_examples.py --mode all
 ```
 
+## Streamlit Frontend (Artifact-Direct)
+
+The Streamlit app is designed for public portfolio demos and loads saved model artifacts directly.
+
+Key behavior:
+
+- no dependency on a running FastAPI server for predictions
+- no dependency on local Ollama for explanation output
+- deterministic explanation mode in public app flow
+- uses saved files from `artifacts/` and report summaries from `reports/`
+
+Run locally:
+
+```powershell
+uv run streamlit run streamlit_app.py
+```
+
+Expected required artifacts:
+
+- `artifacts/binary_model.joblib`
+- `artifacts/multiclass_model.joblib`
+- `artifacts/binary_model_metadata.json`
+- `artifacts/multiclass_model_metadata.json`
+
+Optional but recommended frontend inputs:
+
+- `artifacts/sample_payload.json`
+- `artifacts/sample_explain_payload.json`
+- `reports/model_comparison_report.md`
+- `reports/monitoring_summary.json`
+- `reports/monitoring_report.md`
+
+Dummy example behavior:
+
+- **Load baseline example**: seeds form values from `artifacts/sample_payload.json`
+- **Load dummy example**: seeds form values from `artifacts/sample_explain_payload.json` (or batch fallback)
+
+## Streamlit Community Cloud Deployment
+
+Deployment target:
+
+- app entrypoint: `streamlit_app.py`
+
+Repository deployment notes:
+
+- this repository includes `requirements.txt` with `.` so Community Cloud installs dependencies from `pyproject.toml`
+- `.streamlit/config.toml` provides theme and server configuration
+- `runtime.txt` pins Python runtime to `3.11`
+
+Community Cloud setup steps:
+
+1. Push this repository to GitHub with required model artifacts included.
+2. In Streamlit Community Cloud, create a new app from the GitHub repo.
+3. Set `streamlit_app.py` as the main file path.
+4. Deploy; no secrets are required for core public prediction flow.
+
+Local-only advanced workflows remain available:
+
+- FastAPI serving and request demos
+- Ollama-preferred explanation/narrative generation
+- MLflow local experiment tracking
+
 ## Monitoring Usage
 
 Generate monitoring reports:
@@ -292,7 +356,7 @@ Current CI checks:
 - single public dataset; no external validation cohort
 - local batch-style monitoring, not streaming production telemetry
 - no delayed-label backfill loop for live performance tracking
-- no cloud deployment targets in this repository
+- public deployment target is Streamlit Community Cloud demo hosting (not production clinical deployment)
 
 ## Future Improvements
 

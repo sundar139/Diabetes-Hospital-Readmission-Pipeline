@@ -1,0 +1,14 @@
+[
+  {
+    "feature": "numeric__admission_source_id",
+    "mean_abs_shap": 0.005941541865468025
+  },
+  {
+    "feature": "numeric__discharge_disposition_id",
+    "mean_abs_shap": 0.005861490499228239
+  },
+  {
+    "feature": "numeric__admission_type_id",
+    "mean_abs_shap": 0.004578882362693548
+  }
+]

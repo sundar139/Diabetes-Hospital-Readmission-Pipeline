@@ -1,0 +1,102 @@
+[
+  {
+    "feature": "categorical__diag_1_V55",
+    "mean_abs_shap": 0.9391591548919678
+  },
+  {
+    "feature": "numeric__recurrency",
+    "mean_abs_shap": 0.8460029363632202
+  },
+  {
+    "feature": "categorical__diag_1_566",
+    "mean_abs_shap": 0.5678612589836121
+  },
+  {
+    "feature": "categorical__diag_3_274",
+    "mean_abs_shap": 0.49747270345687866
+  },
+  {
+    "feature": "categorical__diag_3_327",
+    "mean_abs_shap": 0.4029885530471802
+  },
+  {
+    "feature": "categorical__diag_1_V58",
+    "mean_abs_shap": 0.3672211170196533
+  },
+  {
+    "feature": "categorical__diag_2_253",
+    "mean_abs_shap": 0.36041784286499023
+  },
+  {
+    "feature": "categorical__diag_3_490",
+    "mean_abs_shap": 0.32867667078971863
+  },
+  {
+    "feature": "categorical__diag_1_540",
+    "mean_abs_shap": 0.32489073276519775
+  },
+  {
+    "feature": "categorical__diag_1_208",
+    "mean_abs_shap": 0.3204827904701233
+  },
+  {
+    "feature": "categorical__rosiglitazone_Down",
+    "mean_abs_shap": 0.3184891641139984
+  },
+  {
+    "feature": "categorical__diag_1_596",
+    "mean_abs_shap": 0.31330060958862305
+  },
+  {
+    "feature": "categorical__diag_2_136",
+    "mean_abs_shap": 0.30794718861579895
+  },
+  {
+    "feature": "categorical__medical_specialty_Otolaryngology",
+    "mean_abs_shap": 0.3070998787879944
+  },
+  {
+    "feature": "categorical__diag_2_250.1",
+    "mean_abs_shap": 0.3057613968849182
+  },
+  {
+    "feature": "numeric__num_medications",
+    "mean_abs_shap": 0.2985607087612152
+  },
+  {
+    "feature": "numeric__num_lab_procedures",
+    "mean_abs_shap": 0.29704931378364563
+  },
+  {
+    "feature": "categorical__diag_1_965",
+    "mean_abs_shap": 0.2845899164676666
+  },
+  {
+    "feature": "categorical__diag_3_751",
+    "mean_abs_shap": 0.2811266779899597
+  },
+  {
+    "feature": "categorical__diag_2_782",
+    "mean_abs_shap": 0.273506760597229
+  },
+  {
+    "feature": "categorical__diag_2_E878",
+    "mean_abs_shap": 0.2631117105484009
+  },
+  {
+    "feature": "categorical__diag_2_454",
+    "mean_abs_shap": 0.26135358214378357
+  },
+  {
+    "feature": "categorical__diag_2_493",
+    "mean_abs_shap": 0.23954543471336365
+  },
+  {
+    "feature": "categorical__diag_2_301",
+    "mean_abs_shap": 0.23490586876869202
+  },
+  {
+    "feature": "numeric__patient_severity",
+    "mean_abs_shap": 0.2248053252696991
+  }
+]

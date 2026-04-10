@@ -26,6 +26,14 @@ MODULES: tuple[str, ...] = (
     "src.monitoring.drift_monitor",
     "src.monitoring",
     "src.llm",
+    "src.frontend",
+    "src.frontend.loaders",
+    "src.frontend.prediction_engine",
+    "src.frontend.prediction_ui",
+    "src.frontend.analytics_ui",
+    "src.frontend.monitoring_ui",
+    "src.frontend.explanation_ui",
+    "src.frontend.utils",
 )
 
 
