@@ -379,3 +379,7 @@ Solution: deterministic fallback explanation path in API and frontend workflows,
 ## Conclusion
 
 This project demonstrates practical ML systems engineering with transparent artifacts, reproducible workflows, and realistic operational guardrails. It is intentionally local-first, technically honest, and designed for reviewers to validate every stage from data preparation to deployment-facing demo surfaces.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
