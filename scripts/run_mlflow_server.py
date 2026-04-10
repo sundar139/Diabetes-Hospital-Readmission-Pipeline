@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import subprocess
 import sys
 
@@ -15,7 +16,22 @@ def _ensure_mlflow_available() -> None:
         )
 
 
-def build_mlflow_server_command(settings: Settings) -> list[str]:
+def resolve_mlflow_worker_count(settings: Settings) -> tuple[int, str | None]:
+    configured_workers = int(settings.mlflow_server_workers)
+    if os.name != "nt":
+        return configured_workers, None
+
+    if configured_workers == 1:
+        return 1, None
+
+    warning = (
+        "Windows local mode forces mlflow_server_workers=1 to avoid unstable "
+        "multi-process startup behavior."
+    )
+    return 1, warning
+
+
+def build_mlflow_server_command(settings: Settings, *, workers: int) -> list[str]:
     return [
         sys.executable,
         "-m",
@@ -29,12 +45,17 @@ def build_mlflow_server_command(settings: Settings) -> list[str]:
         settings.mlflow_server_host,
         "--port",
         str(settings.mlflow_server_port),
+        "--workers",
+        str(workers),
     ]
 
 
 def run_mlflow_server(*, settings: Settings | None = None) -> int:
     resolved_settings = settings or get_settings()
     _ensure_mlflow_available()
+
+    workers, worker_warning = resolve_mlflow_worker_count(resolved_settings)
+    launch_mode = "windows-single-worker" if os.name == "nt" else "local-server"
 
     try:
         local_artifact_path = resolved_settings.mlflow_artifacts_destination_path
@@ -46,11 +67,13 @@ def run_mlflow_server(*, settings: Settings | None = None) -> int:
 
     try:
         artifact_destination_uri = resolved_settings.mlflow_artifacts_destination_uri_resolved
-        command = build_mlflow_server_command(resolved_settings)
+        command = build_mlflow_server_command(resolved_settings, workers=workers)
     except ValueError as exc:
         raise RuntimeError(f"Invalid MLflow server configuration: {exc}") from exc
 
     print("Starting local MLflow tracking server")
+    print(f"- launch_mode: {launch_mode}")
+    print(f"- workers: {workers}")
     print(f"- tracking_uri: {resolved_settings.mlflow_tracking_uri}")
     print(f"- backend_store_uri: {resolved_settings.mlflow_backend_store_uri_resolved}")
     print(f"- artifacts_destination_configured: {resolved_settings.mlflow_artifacts_destination}")
@@ -59,6 +82,8 @@ def run_mlflow_server(*, settings: Settings | None = None) -> int:
         f"{artifact_destination_uri}"
     )
     print(f"- ui_url: {resolved_settings.mlflow_server_url}")
+    if worker_warning:
+        print(f"- startup_note: {worker_warning}")
 
     try:
         subprocess.run(

@@ -37,6 +37,11 @@
 - Binary SHAP artifacts: generated.
 - Multiclass SHAP artifacts: generated.
 
+## XGBoost Runtime Notes
+
+- Binary runtime: requested=cuda, training=cuda, inference=cpu, fallback_path=True.
+- Multiclass runtime: requested=cuda, training=cuda, inference=cpu, fallback_path=True.
+
 ## Recommended Production Candidate
 
 - binary/xgboost for early-intervention workflows, with multiclass/xgboost as secondary triage support.

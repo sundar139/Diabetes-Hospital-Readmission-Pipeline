@@ -201,11 +201,13 @@ Default local setup:
 - Backend metadata: `sqlite:///mlflow.db`
 - Artifact destination (configured): `./mlartifacts`
 - Artifact destination (server-ready): normalized to `file:///.../mlartifacts`
+- Server workers: `1` in Windows local mode for startup stability
 
 Why this matters on Windows:
 
 - Using a raw path like `C:\...\mlartifacts` can break artifact uploads with artifact repository resolution errors.
 - This project normalizes local artifact destinations to file URI format before launching `mlflow server`.
+- Windows startup can be unstable with multi-worker MLflow server mode; this project forces single-worker launch mode locally to avoid intermittent socket startup errors such as WinError 10022.
 
 If earlier runs were created under broken artifact destination metadata, reset local dev store:
 
@@ -306,11 +308,22 @@ Behavior:
 - `cuda`: requests CUDA, falls back safely if unavailable
 - `cpu`: forces CPU
 
+Deterministic runtime behavior:
+
+- XGBoost can train on CUDA when available and requested.
+- Inference for sklearn/imblearn pipeline outputs is pinned to CPU for XGBoost to avoid device mismatch warnings from CPU-resident transformed matrices.
+- This is intentional and persisted in metadata/results via:
+	- `xgboost_device_requested`
+	- `xgboost_device_used_for_training`
+	- `xgboost_device_used_for_inference`
+	- `xgboost_inference_used_fallback_path`
+- The same inference runtime logic is used across evaluation, API predictions, and monitoring report generation.
+
 Notes:
 
 - Device selection applies only to XGBoost
 - LogisticRegression and RandomForest remain CPU baselines
-- device used is captured in training metadata/results and MLflow params
+- runtime device usage is captured in training metadata/results and MLflow params/tags
 
 ## Docker Usage
 

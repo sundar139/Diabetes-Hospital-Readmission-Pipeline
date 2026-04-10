@@ -1,6 +1,6 @@
 # Monitoring Report
 
-Generated at (UTC): 2026-04-10T03:57:52.654784+00:00
+Generated at (UTC): 2026-04-10T04:12:48.206909+00:00
 
 ## Model Version
 
@@ -22,8 +22,8 @@ Generated at (UTC): 2026-04-10T03:57:52.654784+00:00
 
 ## Binary Probability Summary
 
-- Mean: 0.3722975758548826
-- Std: 0.2430180517678645
+- Mean: 0.37229757674634456
+- Std: 0.24301805220114023
 - Min: 0.0148596977815032
 - Max: 0.9195299744606018
 
@@ -31,6 +31,11 @@ Generated at (UTC): 2026-04-10T03:57:52.654784+00:00
 
 - Binary probability drift status: stable
 - Binary probability PSI: 0.002432362862340654
+
+## Inference Runtime
+
+- binary_model: requested=auto, training=cuda, inference=cpu, fallback_path=True
+- multiclass_model: requested=auto, training=cuda, inference=cpu, fallback_path=True
 
 ### Feature Drift
 
@@ -53,10 +58,11 @@ Generated at (UTC): 2026-04-10T03:57:52.654784+00:00
 
 ## Warnings
 
-- No warnings.
+- binary_model is using CPU-compatible inference path for device stability.
+- multiclass_model is using CPU-compatible inference path for device stability.
 
 ## Optional Narrative Summary
 
 Mode: fallback
 
-Monitoring summary generated for local model operations. Compared 5000 prediction records against 5000 reference rows. Binary-probability drift status is 'stable'. Warnings reported: 0.
+Monitoring summary generated for local model operations. Compared 5000 prediction records against 5000 reference rows. Binary-probability drift status is 'stable'. Inference fallback models: 2. Warnings reported: 2.

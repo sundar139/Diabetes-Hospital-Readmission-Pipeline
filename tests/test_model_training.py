@@ -129,8 +129,15 @@ def test_xgboost_training_persists_device_selection_metadata(tmp_path: Path) -> 
     metadata = json.loads(result.best_metadata_path.read_text(encoding="utf-8"))
     assert metadata["xgboost_device_requested"] == "cpu"
     assert metadata["xgboost_device_used"] == "cpu"
+    assert metadata["xgboost_device_used_for_training"] == "cpu"
+    assert metadata["xgboost_device_used_for_inference"] == "cpu"
+    assert metadata["xgboost_inference_used_fallback_path"] is False
 
     results_payload = json.loads(result.training_results_path.read_text(encoding="utf-8"))
     assert results_payload["best_run"]["xgboost_device_requested"] == "cpu"
     assert results_payload["best_run"]["xgboost_device_used"] == "cpu"
+    assert results_payload["best_run"]["xgboost_device_used_for_training"] == "cpu"
+    assert results_payload["best_run"]["xgboost_device_used_for_inference"] == "cpu"
+    assert results_payload["best_run"]["xgboost_inference_used_fallback_path"] is False
     assert results_payload["runs"][0]["xgboost_device_used"] == "cpu"
+    assert results_payload["runs"][0]["xgboost_device_used_for_inference"] == "cpu"

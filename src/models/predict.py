@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,112 @@ class PredictionResult:
     predictions: list[str]
     probabilities_by_class: dict[str, list[float]]
     positive_class_probability: list[float] | None
+    inference_runtime: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True)
+class XGBoostInferenceRuntime:
+    is_xgboost_model: bool
+    xgboost_device_requested: str | None
+    xgboost_device_used_for_inference: str | None
+    inference_used_fallback_path: bool
+    warning: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "is_xgboost_model": self.is_xgboost_model,
+            "xgboost_device_requested": self.xgboost_device_requested,
+            "xgboost_device_used_for_inference": self.xgboost_device_used_for_inference,
+            "inference_used_fallback_path": self.inference_used_fallback_path,
+            "warning": self.warning,
+        }
+
+
+def _normalize_xgboost_device(raw_value: Any) -> str | None:
+    if raw_value is None:
+        return None
+
+    normalized = str(raw_value).strip().lower()
+    if not normalized:
+        return None
+
+    if normalized.startswith("cuda") or normalized.startswith("gpu"):
+        return "cuda"
+    if normalized == "cpu":
+        return "cpu"
+    return normalized
+
+
+def _extract_xgboost_classifier(model: Any) -> Any | None:
+    if model.__class__.__name__ == "XGBClassifier":
+        return model
+
+    named_steps = getattr(model, "named_steps", None)
+    if not isinstance(named_steps, Mapping):
+        return None
+
+    classifier = named_steps.get("classifier")
+    if classifier is None:
+        return None
+    if classifier.__class__.__name__ != "XGBClassifier":
+        return None
+    return classifier
+
+
+def ensure_cpu_inference_for_xgboost(model: Any) -> XGBoostInferenceRuntime:
+    classifier = _extract_xgboost_classifier(model)
+    if classifier is None:
+        return XGBoostInferenceRuntime(
+            is_xgboost_model=False,
+            xgboost_device_requested=None,
+            xgboost_device_used_for_inference=None,
+            inference_used_fallback_path=False,
+        )
+
+    params = classifier.get_params(deep=False) if hasattr(classifier, "get_params") else {}
+    requested_device = _normalize_xgboost_device(params.get("device"))
+
+    if requested_device is None and hasattr(classifier, "get_xgb_params"):
+        try:
+            requested_device = _normalize_xgboost_device(classifier.get_xgb_params().get("device"))
+        except Exception:
+            requested_device = None
+
+    if requested_device is None:
+        requested_device = "cpu"
+
+    if requested_device == "cpu":
+        return XGBoostInferenceRuntime(
+            is_xgboost_model=True,
+            xgboost_device_requested=requested_device,
+            xgboost_device_used_for_inference="cpu",
+            inference_used_fallback_path=False,
+        )
+
+    try:
+        classifier.set_params(device="cpu")
+    except Exception as exc:
+        return XGBoostInferenceRuntime(
+            is_xgboost_model=True,
+            xgboost_device_requested=requested_device,
+            xgboost_device_used_for_inference=requested_device,
+            inference_used_fallback_path=False,
+            warning=(
+                "Unable to pin XGBoost inference to cpu; runtime may still perform "
+                f"automatic device fallback. Error: {exc}"
+            ),
+        )
+
+    return XGBoostInferenceRuntime(
+        is_xgboost_model=True,
+        xgboost_device_requested=requested_device,
+        xgboost_device_used_for_inference="cpu",
+        inference_used_fallback_path=True,
+        warning=(
+            "XGBoost inference is pinned to cpu because preprocessing outputs "
+            "CPU-resident features."
+        ),
+    )
 
 
 def load_model(model_path: Path) -> Any:
@@ -64,6 +171,7 @@ def predict_from_frame(
     task_type: str,
     label_decoder: dict[int, str] | None = None,
 ) -> PredictionResult:
+    inference_runtime = ensure_cpu_inference_for_xgboost(model)
     x = select_model_features(frame, feature_columns)
 
     raw_predictions = np.asarray(model.predict(x))
@@ -95,6 +203,7 @@ def predict_from_frame(
         predictions=decoded_predictions,
         probabilities_by_class=probabilities_by_class,
         positive_class_probability=positive_probability,
+        inference_runtime=inference_runtime.as_dict(),
     )
 
 

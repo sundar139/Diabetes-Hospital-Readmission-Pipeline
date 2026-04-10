@@ -32,7 +32,7 @@ class SinglePredictionResponse(BaseModel):
     binary_probability: float
     multiclass_prediction: str
     multiclass_probabilities: dict[str, float]
-    model_metadata_summary: dict[str, str | float | int | None]
+    model_metadata_summary: dict[str, str | float | int | bool | None]
 
 
 class BatchPredictionResponse(BaseModel):

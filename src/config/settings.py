@@ -125,6 +125,7 @@ class Settings(BaseSettings):
     mlflow_artifacts_destination: str = "./mlartifacts"
     mlflow_server_host: str = "127.0.0.1"
     mlflow_server_port: int = 5000
+    mlflow_server_workers: int = 1
     mlflow_experiment_name: str = "diabetes-readmission"
 
     xgboost_device: Literal["auto", "cuda", "cpu"] = "auto"
@@ -156,6 +157,13 @@ class Settings(BaseSettings):
     def _validate_mlflow_server_port(cls, value: int) -> int:
         if not 1 <= value <= 65535:
             raise ValueError("mlflow_server_port must be in range 1..65535.")
+        return value
+
+    @field_validator("mlflow_server_workers")
+    @classmethod
+    def _validate_mlflow_server_workers(cls, value: int) -> int:
+        if value < 1:
+            raise ValueError("mlflow_server_workers must be at least 1.")
         return value
 
     @field_validator("xgboost_device")

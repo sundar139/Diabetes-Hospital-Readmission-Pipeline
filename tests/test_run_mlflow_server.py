@@ -34,19 +34,35 @@ def _build_settings(tmp_path: Path) -> Settings:
         mlflow_artifacts_destination="./mlartifacts",
         mlflow_server_host="127.0.0.1",
         mlflow_server_port=5000,
+        mlflow_server_workers=4,
     )
 
 
 def test_build_mlflow_server_command_uses_resolved_values(tmp_path: Path) -> None:
     settings = _build_settings(tmp_path)
 
-    command = run_mlflow_server.build_mlflow_server_command(settings)
+    command = run_mlflow_server.build_mlflow_server_command(settings, workers=1)
 
     assert command[:4] == [sys.executable, "-m", "mlflow", "server"]
     assert "--backend-store-uri" in command
     assert settings.mlflow_backend_store_uri_resolved in command
     assert "--artifacts-destination" in command
     assert settings.mlflow_artifacts_destination_uri_resolved in command
+    assert "--workers" in command
+    assert "1" in command
+
+
+def test_resolve_mlflow_worker_count_forces_single_worker_on_windows(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    settings = _build_settings(tmp_path)
+
+    monkeypatch.setattr(run_mlflow_server.os, "name", "nt", raising=False)
+    workers, warning = run_mlflow_server.resolve_mlflow_worker_count(settings)
+
+    assert workers == 1
+    assert warning is not None
 
 
 def test_run_mlflow_server_raises_when_mlflow_missing(
@@ -79,10 +95,15 @@ def test_run_mlflow_server_invokes_subprocess(
     monkeypatch.setattr(run_mlflow_server.subprocess, "run", fake_run)
 
     exit_code = run_mlflow_server.run_mlflow_server(settings=settings)
+    expected_workers = "1" if run_mlflow_server.os.name == "nt" else str(
+        settings.mlflow_server_workers
+    )
 
     assert exit_code == 0
     assert captured["check"] is True
     assert captured["cwd"] == settings.project_root
     assert "--port" in captured["command"]
     assert str(settings.mlflow_server_port) in captured["command"]
+    assert "--workers" in captured["command"]
+    assert expected_workers in captured["command"]
     assert settings.mlflow_artifacts_destination_path.exists()

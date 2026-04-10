@@ -114,6 +114,18 @@ def main() -> int:
     print(f"- best_sampling_strategy: {result.sampling_strategy}")
     print(f"- best_feature_selection: {result.feature_selection_strategy}")
     print(f"- best_xgboost_device: {result.xgboost_device_used or 'n/a'}")
+    print(
+        "- best_xgboost_device_used_for_training: "
+        f"{result.xgboost_device_used_for_training or 'n/a'}"
+    )
+    print(
+        "- best_xgboost_device_used_for_inference: "
+        f"{result.xgboost_device_used_for_inference or 'n/a'}"
+    )
+    print(
+        "- best_xgboost_inference_fallback_path: "
+        f"{result.xgboost_inference_used_fallback_path}"
+    )
     print(f"- best_val_metrics: {val_summary}")
     print(f"- best_test_metrics: {test_summary}")
     return 0

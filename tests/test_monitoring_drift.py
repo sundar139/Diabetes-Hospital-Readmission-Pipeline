@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
@@ -89,3 +90,82 @@ def test_monitoring_narrative_fallback_mode() -> None:
     assert mode == "fallback"
     assert warnings == []
     assert "Monitoring summary generated" in text
+
+
+def test_build_prediction_records_include_inference_runtime(monkeypatch) -> None:
+    frame = pd.DataFrame(
+        {
+            "time_in_hospital": [4, 6],
+            "num_medications": [10, 12],
+        }
+    )
+
+    def fake_predict_from_frame(*, task_type: str, **_: object) -> SimpleNamespace:
+        if task_type == "binary":
+            return SimpleNamespace(
+                predictions=["1", "0"],
+                probabilities_by_class={"0": [0.25, 0.75], "1": [0.75, 0.25]},
+                positive_class_probability=[0.75, 0.25],
+                inference_runtime={
+                    "xgboost_device_used_for_inference": "cpu",
+                    "inference_used_fallback_path": True,
+                },
+            )
+
+        return SimpleNamespace(
+            predictions=["<30", "NO"],
+            probabilities_by_class={"NO": [0.2, 0.8], ">30": [0.1, 0.1], "<30": [0.7, 0.1]},
+            positive_class_probability=None,
+            inference_runtime={
+                "xgboost_device_used_for_inference": "cpu",
+                "inference_used_fallback_path": True,
+            },
+        )
+
+    monkeypatch.setattr(drift_monitor, "predict_from_frame", fake_predict_from_frame)
+
+    records = drift_monitor.build_prediction_records(
+        frame=frame,
+        binary_model=object(),
+        multiclass_model=object(),
+        binary_metadata={"feature_columns": ["time_in_hospital", "num_medications"]},
+        multiclass_metadata={"feature_columns": ["time_in_hospital", "num_medications"]},
+        model_version_info={
+            "binary_model": {
+                "xgboost_device_requested": "cuda",
+                "xgboost_device_used_for_training": "cuda",
+                "xgboost_device_used_for_inference": "cpu",
+                "xgboost_inference_used_fallback_path": True,
+            },
+            "multiclass_model": {
+                "xgboost_device_requested": "cuda",
+                "xgboost_device_used_for_training": "cuda",
+                "xgboost_device_used_for_inference": "cpu",
+                "xgboost_inference_used_fallback_path": True,
+            },
+        },
+    )
+
+    assert records
+    assert records[0]["inference_runtime"]["binary"]["inference_used_fallback_path"] is True
+
+    runtime = drift_monitor.summarize_inference_runtime(
+        model_version_info={
+            "binary_model": {
+                "xgboost_device_requested": "cuda",
+                "xgboost_device_used_for_training": "cuda",
+                "xgboost_device_used_for_inference": "cpu",
+                "xgboost_inference_used_fallback_path": True,
+            },
+            "multiclass_model": {
+                "xgboost_device_requested": "cuda",
+                "xgboost_device_used_for_training": "cuda",
+                "xgboost_device_used_for_inference": "cpu",
+                "xgboost_inference_used_fallback_path": True,
+            },
+        },
+        current_records=records,
+    )
+
+    assert runtime["binary_model"]["inference_used_fallback_path"] is True
+    assert runtime["binary_model"]["record_runtime_device"] == "cpu"

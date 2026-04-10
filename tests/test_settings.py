@@ -15,6 +15,7 @@ def test_mlflow_defaults_use_local_tracking_server() -> None:
     assert settings.mlflow_backend_store_uri == "sqlite:///mlflow.db"
     assert settings.mlflow_server_host == "127.0.0.1"
     assert settings.mlflow_server_port == 5000
+    assert settings.mlflow_server_workers == 1
     assert settings.xgboost_device == "auto"
 
 
@@ -73,6 +74,9 @@ def test_mlflow_artifacts_destination_uri_is_preserved(tmp_path: Path) -> None:
 def test_mlflow_server_and_xgboost_config_validation() -> None:
     with pytest.raises(ValidationError):
         Settings(_env_file=None, mlflow_server_port=70000)
+
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, mlflow_server_workers=0)
 
     with pytest.raises(ValidationError):
         Settings(_env_file=None, xgboost_device="gpu")

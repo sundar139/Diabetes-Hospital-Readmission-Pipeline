@@ -19,6 +19,8 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
+from src.models.predict import ensure_cpu_inference_for_xgboost
+
 TaskType = Literal["binary", "multiclass"]
 
 
@@ -320,17 +322,36 @@ def evaluate_model(
     class_labels: tuple[str, ...] | None = None,
     label_decoder: dict[int, str] | None = None,
 ) -> EvaluationResult:
+    inference_runtime = ensure_cpu_inference_for_xgboost(model)
+    inference_runtime_payload = inference_runtime.as_dict()
+
     if task_type == "binary":
         y_true = pd.to_numeric(y, errors="coerce").fillna(0).astype("int32").to_numpy()
         y_pred = np.asarray(model.predict(x), dtype=int)
         y_score = _positive_class_probability(model, x)
-        return evaluate_binary_predictions(
+        result = evaluate_binary_predictions(
             y_true,
             y_pred,
             y_score,
             output_dir=output_dir,
             run_name=run_name,
             create_calibration_plot=True,
+        )
+
+        metrics_with_runtime = dict(result.metrics)
+        metrics_with_runtime["inference_runtime"] = inference_runtime_payload
+
+        warnings = list(result.warnings)
+        if inference_runtime.warning:
+            warnings.append(inference_runtime.warning)
+
+        _write_json(metrics_with_runtime, result.metrics_path)
+        return EvaluationResult(
+            task_type=result.task_type,
+            metrics=metrics_with_runtime,
+            metrics_path=result.metrics_path,
+            artifact_paths=result.artifact_paths,
+            warnings=tuple(warnings),
         )
 
     y_pred_raw = pd.Series(model.predict(x), index=y.index)
@@ -354,10 +375,26 @@ def evaluate_model(
     if labels is None:
         labels = tuple(sorted({str(value) for value in y_true_eval.dropna().unique().tolist()}))
 
-    return evaluate_multiclass_predictions(
+    result = evaluate_multiclass_predictions(
         y_true_eval,
         y_pred_eval,
         class_labels=labels,
         output_dir=output_dir,
         run_name=run_name,
+    )
+
+    metrics_with_runtime = dict(result.metrics)
+    metrics_with_runtime["inference_runtime"] = inference_runtime_payload
+
+    warnings = list(result.warnings)
+    if inference_runtime.warning:
+        warnings.append(inference_runtime.warning)
+
+    _write_json(metrics_with_runtime, result.metrics_path)
+    return EvaluationResult(
+        task_type=result.task_type,
+        metrics=metrics_with_runtime,
+        metrics_path=result.metrics_path,
+        artifact_paths=result.artifact_paths,
+        warnings=tuple(warnings),
     )

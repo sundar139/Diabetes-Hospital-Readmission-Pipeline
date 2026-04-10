@@ -144,7 +144,27 @@ class PredictionServingService:
     def _model_metadata_summary(
         self,
         artifacts: LoadedModelArtifacts,
-    ) -> dict[str, str | float | int | None]:
+    ) -> dict[str, str | float | int | bool | None]:
+        binary_training_device = artifacts.binary_metadata.get("xgboost_device_used_for_training")
+        if binary_training_device is None:
+            binary_training_device = artifacts.binary_metadata.get("xgboost_device_used")
+
+        binary_inference_device = artifacts.binary_metadata.get("xgboost_device_used_for_inference")
+        if binary_inference_device is None:
+            binary_inference_device = binary_training_device
+
+        multiclass_training_device = artifacts.multiclass_metadata.get(
+            "xgboost_device_used_for_training"
+        )
+        if multiclass_training_device is None:
+            multiclass_training_device = artifacts.multiclass_metadata.get("xgboost_device_used")
+
+        multiclass_inference_device = artifacts.multiclass_metadata.get(
+            "xgboost_device_used_for_inference"
+        )
+        if multiclass_inference_device is None:
+            multiclass_inference_device = multiclass_training_device
+
         return {
             "binary_model_family": str(artifacts.binary_metadata.get("model_family")),
             "multiclass_model_family": str(artifacts.multiclass_metadata.get("model_family")),
@@ -153,6 +173,22 @@ class PredictionServingService:
             ),
             "multiclass_training_timestamp_utc": artifacts.multiclass_metadata.get(
                 "training_timestamp_utc"
+            ),
+            "binary_xgboost_device_requested": artifacts.binary_metadata.get(
+                "xgboost_device_requested"
+            ),
+            "binary_xgboost_device_used_for_training": binary_training_device,
+            "binary_xgboost_device_used_for_inference": binary_inference_device,
+            "binary_xgboost_inference_fallback_path": artifacts.binary_metadata.get(
+                "xgboost_inference_used_fallback_path"
+            ),
+            "multiclass_xgboost_device_requested": artifacts.multiclass_metadata.get(
+                "xgboost_device_requested"
+            ),
+            "multiclass_xgboost_device_used_for_training": multiclass_training_device,
+            "multiclass_xgboost_device_used_for_inference": multiclass_inference_device,
+            "multiclass_xgboost_inference_fallback_path": artifacts.multiclass_metadata.get(
+                "xgboost_inference_used_fallback_path"
             ),
         }
 
@@ -185,6 +221,20 @@ class PredictionServingService:
         )
 
         metadata_summary = self._model_metadata_summary(artifacts)
+        binary_runtime = binary_output.inference_runtime or {}
+        multiclass_runtime = multiclass_output.inference_runtime or {}
+        metadata_summary["binary_runtime_device"] = binary_runtime.get(
+            "xgboost_device_used_for_inference"
+        )
+        metadata_summary["binary_runtime_fallback_path"] = binary_runtime.get(
+            "inference_used_fallback_path"
+        )
+        metadata_summary["multiclass_runtime_device"] = multiclass_runtime.get(
+            "xgboost_device_used_for_inference"
+        )
+        metadata_summary["multiclass_runtime_fallback_path"] = multiclass_runtime.get(
+            "inference_used_fallback_path"
+        )
 
         responses: list[SinglePredictionResponse] = []
         for idx in range(len(frame)):

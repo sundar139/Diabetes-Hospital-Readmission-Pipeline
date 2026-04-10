@@ -119,6 +119,36 @@ def _render_model_comparison_report(
     if multiclass_metadata.get("shap_artifacts"):
         multiclass_shap_note = "generated"
 
+    def runtime_note(payload: dict[str, Any], eval_metrics: dict[str, Any]) -> str:
+        runtime_payload = eval_metrics.get("inference_runtime", {})
+        if not isinstance(runtime_payload, dict):
+            runtime_payload = {}
+
+        requested = runtime_payload.get("xgboost_device_requested")
+        if requested is None:
+            requested = payload.get("xgboost_device_requested")
+
+        used_training = payload.get("xgboost_device_used_for_training")
+        if used_training is None:
+            used_training = payload.get("xgboost_device_used")
+
+        used_inference = runtime_payload.get("xgboost_device_used_for_inference")
+        if used_inference is None:
+            used_inference = payload.get("xgboost_device_used_for_inference")
+        if used_inference is None:
+            used_inference = used_training
+
+        fallback_path = runtime_payload.get("inference_used_fallback_path")
+        if fallback_path is None:
+            fallback_path = payload.get("xgboost_inference_used_fallback_path")
+        if fallback_path is None:
+            fallback_path = bool(used_training == "cuda" and used_inference == "cpu")
+
+        return (
+            f"requested={requested}, training={used_training}, "
+            f"inference={used_inference}, fallback_path={fallback_path}"
+        )
+
     recommended_model = (
         "binary/"
         f"{binary_metadata.get('model_family', 'unknown')} "
@@ -196,6 +226,11 @@ def _render_model_comparison_report(
             "",
             f"- Binary SHAP artifacts: {binary_shap_note}.",
             f"- Multiclass SHAP artifacts: {multiclass_shap_note}.",
+            "",
+            "## XGBoost Runtime Notes",
+            "",
+            f"- Binary runtime: {runtime_note(binary_metadata, binary_eval.metrics)}.",
+            f"- Multiclass runtime: {runtime_note(multiclass_metadata, multiclass_eval.metrics)}.",
             "",
             "## Recommended Production Candidate",
             "",

@@ -114,17 +114,45 @@ def load_model_version_info(artifacts_dir: Path) -> dict[str, Any]:
     if multiclass_metadata_path.exists():
         multiclass_metadata = load_model_metadata(multiclass_metadata_path)
 
+    binary_training_device = binary_metadata.get("xgboost_device_used_for_training")
+    if binary_training_device is None:
+        binary_training_device = binary_metadata.get("xgboost_device_used")
+
+    binary_inference_device = binary_metadata.get("xgboost_device_used_for_inference")
+    if binary_inference_device is None:
+        binary_inference_device = binary_training_device
+
+    multiclass_training_device = multiclass_metadata.get("xgboost_device_used_for_training")
+    if multiclass_training_device is None:
+        multiclass_training_device = multiclass_metadata.get("xgboost_device_used")
+
+    multiclass_inference_device = multiclass_metadata.get("xgboost_device_used_for_inference")
+    if multiclass_inference_device is None:
+        multiclass_inference_device = multiclass_training_device
+
     return {
         "binary_model": {
             "model_family": binary_metadata.get("model_family"),
             "training_timestamp_utc": binary_metadata.get("training_timestamp_utc"),
             "feature_count": len(binary_metadata.get("feature_columns", [])),
+            "xgboost_device_requested": binary_metadata.get("xgboost_device_requested"),
+            "xgboost_device_used_for_training": binary_training_device,
+            "xgboost_device_used_for_inference": binary_inference_device,
+            "xgboost_inference_used_fallback_path": binary_metadata.get(
+                "xgboost_inference_used_fallback_path"
+            ),
             "metadata_path": str(binary_metadata_path),
         },
         "multiclass_model": {
             "model_family": multiclass_metadata.get("model_family"),
             "training_timestamp_utc": multiclass_metadata.get("training_timestamp_utc"),
             "feature_count": len(multiclass_metadata.get("feature_columns", [])),
+            "xgboost_device_requested": multiclass_metadata.get("xgboost_device_requested"),
+            "xgboost_device_used_for_training": multiclass_training_device,
+            "xgboost_device_used_for_inference": multiclass_inference_device,
+            "xgboost_inference_used_fallback_path": multiclass_metadata.get(
+                "xgboost_inference_used_fallback_path"
+            ),
             "metadata_path": str(multiclass_metadata_path),
         },
     }
@@ -171,6 +199,9 @@ def build_prediction_records(
         label_decoder=multiclass_decoder,
     )
 
+    binary_runtime = binary_output.inference_runtime or {}
+    multiclass_runtime = multiclass_output.inference_runtime or {}
+
     timestamp_utc = datetime.now(UTC).isoformat()
     records: list[dict[str, Any]] = []
 
@@ -204,6 +235,10 @@ def build_prediction_records(
             "binary_probability": binary_probability,
             "multiclass_prediction": str(multiclass_output.predictions[idx]),
             "multiclass_probabilities": multiclass_probabilities,
+            "inference_runtime": {
+                "binary": binary_runtime,
+                "multiclass": multiclass_runtime,
+            },
             "model_version": model_version_info,
         }
 
@@ -426,6 +461,60 @@ def summarize_label_availability(records: Sequence[Mapping[str, Any]]) -> dict[s
     }
 
 
+def summarize_inference_runtime(
+    *,
+    model_version_info: Mapping[str, Any],
+    current_records: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    runtime_summary: dict[str, Any] = {}
+
+    for model_key, record_key in (("binary_model", "binary"), ("multiclass_model", "multiclass")):
+        model_payload = model_version_info.get(model_key, {})
+        if not isinstance(model_payload, Mapping):
+            model_payload = {}
+
+        record_runtime: Mapping[str, Any] = {}
+        for record in current_records:
+            runtime_payload = record.get("inference_runtime", {})
+            if not isinstance(runtime_payload, Mapping):
+                continue
+
+            candidate = runtime_payload.get(record_key, {})
+            if isinstance(candidate, Mapping) and candidate:
+                record_runtime = candidate
+                break
+
+        metadata_training_device = model_payload.get("xgboost_device_used_for_training")
+        metadata_inference_device = model_payload.get("xgboost_device_used_for_inference")
+        record_inference_device = record_runtime.get("xgboost_device_used_for_inference")
+        effective_inference_device = record_inference_device or metadata_inference_device
+
+        record_fallback = record_runtime.get("inference_used_fallback_path")
+
+        metadata_fallback = model_payload.get("xgboost_inference_used_fallback_path")
+        if metadata_fallback is None:
+            metadata_fallback = bool(
+                metadata_training_device == "cuda" and metadata_inference_device == "cpu"
+            )
+
+        effective_fallback = bool(record_fallback) if record_fallback is not None else bool(
+            metadata_fallback
+        )
+
+        runtime_summary[model_key] = {
+            "xgboost_device_requested": model_payload.get("xgboost_device_requested"),
+            "xgboost_device_used_for_training": metadata_training_device,
+            "xgboost_device_used_for_inference": effective_inference_device,
+            "inference_used_fallback_path": effective_fallback,
+            "metadata_inference_device": metadata_inference_device,
+            "metadata_fallback_path": bool(metadata_fallback),
+            "record_runtime_device": record_inference_device,
+            "record_runtime_fallback_path": record_fallback,
+        }
+
+    return runtime_summary
+
+
 def build_monitoring_summary(
     *,
     model_version_info: Mapping[str, Any],
@@ -438,6 +527,11 @@ def build_monitoring_summary(
     psi_bins: int = 10,
 ) -> dict[str, Any]:
     warnings: list[str] = []
+
+    inference_runtime = summarize_inference_runtime(
+        model_version_info=model_version_info,
+        current_records=current_records,
+    )
 
     binary_probabilities = [
         value
@@ -509,9 +603,26 @@ def build_monitoring_summary(
             f"below recommended minimum ({min_sample_size})."
         )
 
+    for model_key, payload in inference_runtime.items():
+        if not isinstance(payload, Mapping):
+            continue
+
+        if bool(payload.get("inference_used_fallback_path")):
+            warnings.append(
+                f"{model_key} is using CPU-compatible inference path for device stability."
+            )
+
+        requested = payload.get("xgboost_device_requested")
+        used_training = payload.get("xgboost_device_used_for_training")
+        if requested == "cuda" and used_training != "cuda":
+            warnings.append(
+                f"{model_key} requested CUDA but training used '{used_training}'."
+            )
+
     return {
         "generated_at_utc": datetime.now(UTC).isoformat(),
         "model_version": dict(model_version_info),
+        "inference_runtime": inference_runtime,
         "sample_sizes": {
             "reference_rows": int(len(reference_frame)) if reference_frame is not None else 0,
             "current_feature_rows": (
@@ -532,15 +643,24 @@ def build_monitoring_fallback_summary(summary: Mapping[str, Any]) -> str:
     sample_sizes = summary.get("sample_sizes", {})
     probability_drift = summary.get("binary_probability_drift", {})
     warnings = summary.get("warnings", [])
+    inference_runtime = summary.get("inference_runtime", {})
 
     drift_status = probability_drift.get("status", "unavailable")
     record_count = sample_sizes.get("prediction_records", 0)
     reference_count = sample_sizes.get("reference_rows", 0)
+    fallback_models = 0
+    if isinstance(inference_runtime, Mapping):
+        fallback_models = sum(
+            1
+            for payload in inference_runtime.values()
+            if isinstance(payload, Mapping) and bool(payload.get("inference_used_fallback_path"))
+        )
 
     return (
         "Monitoring summary generated for local model operations. "
         f"Compared {record_count} prediction records against {reference_count} reference rows. "
         f"Binary-probability drift status is '{drift_status}'. "
+        f"Inference fallback models: {fallback_models}. "
         f"Warnings reported: {len(warnings)}."
     )
 
@@ -604,6 +724,7 @@ def render_monitoring_report(summary: Mapping[str, Any]) -> str:
     probability_summary = summary.get("binary_probability_summary", {})
     probability_drift = summary.get("binary_probability_drift", {})
     feature_drift = summary.get("feature_drift", {})
+    inference_runtime = summary.get("inference_runtime", {})
     label_monitoring = summary.get("label_monitoring", {})
     warnings = summary.get("warnings", [])
     binary_counts_json = json.dumps(
@@ -659,9 +780,32 @@ def render_monitoring_report(summary: Mapping[str, Any]) -> str:
         f"- Binary probability drift status: {probability_drift.get('status')}",
         f"- Binary probability PSI: {probability_drift.get('psi')}",
         "",
-        "### Feature Drift",
+        "## Inference Runtime",
         "",
     ]
+
+    if isinstance(inference_runtime, Mapping) and inference_runtime:
+        for model_key in ("binary_model", "multiclass_model"):
+            payload = inference_runtime.get(model_key, {})
+            if not isinstance(payload, Mapping):
+                continue
+
+            lines.append(
+                f"- {model_key}: requested={payload.get('xgboost_device_requested')}, "
+                f"training={payload.get('xgboost_device_used_for_training')}, "
+                f"inference={payload.get('xgboost_device_used_for_inference')}, "
+                f"fallback_path={payload.get('inference_used_fallback_path')}"
+            )
+    else:
+        lines.append("- Inference runtime details unavailable.")
+
+    lines.extend(
+        [
+            "",
+        "### Feature Drift",
+        "",
+        ]
+    )
 
     if feature_drift:
         for feature_name in sorted(feature_drift):

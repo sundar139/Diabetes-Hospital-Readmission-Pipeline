@@ -48,6 +48,9 @@ class TrainingRunSummary:
     shap_artifacts: dict[str, Any]
     xgboost_device_requested: str | None
     xgboost_device_used: str | None
+    xgboost_device_used_for_training: str | None
+    xgboost_device_used_for_inference: str | None
+    xgboost_inference_used_fallback_path: bool | None
     warnings: tuple[str, ...]
 
 
@@ -63,6 +66,9 @@ class TaskTrainingResult:
     sampling_strategy: SamplingStrategy
     feature_selection_strategy: FeatureSelectionStrategy
     xgboost_device_used: str | None
+    xgboost_device_used_for_training: str | None
+    xgboost_device_used_for_inference: str | None
+    xgboost_inference_used_fallback_path: bool | None
 
 
 class OptionalBorutaSelector(BaseEstimator, TransformerMixin):
@@ -293,8 +299,30 @@ def _log_mlflow_run(
                 run_params["xgboost_device_requested"] = run_summary.xgboost_device_requested
             if run_summary.xgboost_device_used is not None:
                 run_params["xgboost_device_used"] = run_summary.xgboost_device_used
+            if run_summary.xgboost_device_used_for_training is not None:
+                run_params["xgboost_device_used_for_training"] = (
+                    run_summary.xgboost_device_used_for_training
+                )
+            if run_summary.xgboost_device_used_for_inference is not None:
+                run_params["xgboost_device_used_for_inference"] = (
+                    run_summary.xgboost_device_used_for_inference
+                )
+            if run_summary.xgboost_inference_used_fallback_path is not None:
+                run_params["xgboost_inference_used_fallback_path"] = str(
+                    run_summary.xgboost_inference_used_fallback_path
+                ).lower()
 
             mlflow.log_params(run_params)
+            mlflow.set_tags(
+                {
+                    "runtime.inference_device": (
+                        run_summary.xgboost_device_used_for_inference or "n/a"
+                    ),
+                    "runtime.inference_fallback": str(
+                        bool(run_summary.xgboost_inference_used_fallback_path)
+                    ).lower(),
+                }
+            )
             mlflow.log_params({f"model_param.{k}": v for k, v in estimator_params.items()})
 
             numeric_metrics = {
@@ -396,6 +424,9 @@ def train_task(
             scale_pos_weight: float | None = None
             run_xgboost_device_requested: str | None = None
             run_xgboost_device_used: str | None = None
+            run_xgboost_device_used_for_training: str | None = None
+            run_xgboost_device_used_for_inference: str | None = None
+            run_xgboost_inference_used_fallback_path: bool | None = None
             estimator_xgboost_device: str = "cpu"
             device_warnings: list[str] = []
 
@@ -408,11 +439,25 @@ def train_task(
 
             if model_family == "xgboost":
                 run_xgboost_device_requested = resolved_settings.xgboost_device
-                run_xgboost_device_used, xgboost_warnings = resolve_xgboost_runtime_device(
+                run_xgboost_device_used_for_training, xgboost_warnings = (
+                    resolve_xgboost_runtime_device(
                     requested_device=resolved_settings.xgboost_device
+                    )
                 )
+                run_xgboost_device_used = run_xgboost_device_used_for_training
                 estimator_xgboost_device = run_xgboost_device_used
                 device_warnings.extend(xgboost_warnings)
+
+                if run_xgboost_device_used_for_training == "cuda":
+                    run_xgboost_device_used_for_inference = "cpu"
+                    run_xgboost_inference_used_fallback_path = True
+                    device_warnings.append(
+                        "XGBoost training used CUDA, but inference is pinned to CPU because "
+                        "preprocessing outputs CPU-resident feature matrices."
+                    )
+                else:
+                    run_xgboost_device_used_for_inference = run_xgboost_device_used_for_training
+                    run_xgboost_inference_used_fallback_path = False
 
             estimator = build_estimator(
                 model_family=model_family,
@@ -508,6 +553,9 @@ def train_task(
                 "shap_artifacts": shap_artifacts,
                 "xgboost_device_requested": run_xgboost_device_requested,
                 "xgboost_device_used": run_xgboost_device_used,
+                "xgboost_device_used_for_training": run_xgboost_device_used_for_training,
+                "xgboost_device_used_for_inference": run_xgboost_device_used_for_inference,
+                "xgboost_inference_used_fallback_path": run_xgboost_inference_used_fallback_path,
                 "warnings": run_warnings,
                 "timestamp_utc": datetime.now(UTC).isoformat(),
             }
@@ -526,6 +574,9 @@ def train_task(
                 shap_artifacts=shap_artifacts,
                 xgboost_device_requested=run_xgboost_device_requested,
                 xgboost_device_used=run_xgboost_device_used,
+                xgboost_device_used_for_training=run_xgboost_device_used_for_training,
+                xgboost_device_used_for_inference=run_xgboost_device_used_for_inference,
+                xgboost_inference_used_fallback_path=run_xgboost_inference_used_fallback_path,
                 warnings=tuple(run_warnings),
             )
 
@@ -551,6 +602,11 @@ def train_task(
                     shap_artifacts=summary.shap_artifacts,
                     xgboost_device_requested=summary.xgboost_device_requested,
                     xgboost_device_used=summary.xgboost_device_used,
+                    xgboost_device_used_for_training=summary.xgboost_device_used_for_training,
+                    xgboost_device_used_for_inference=summary.xgboost_device_used_for_inference,
+                    xgboost_inference_used_fallback_path=(
+                        summary.xgboost_inference_used_fallback_path
+                    ),
                     warnings=summary.warnings + tuple(mlflow_warnings),
                 )
 
@@ -597,6 +653,9 @@ def train_task(
         "feature_selection_strategy": best_summary.feature_selection_strategy,
         "xgboost_device_requested": best_summary.xgboost_device_requested,
         "xgboost_device_used": best_summary.xgboost_device_used,
+        "xgboost_device_used_for_training": best_summary.xgboost_device_used_for_training,
+        "xgboost_device_used_for_inference": best_summary.xgboost_device_used_for_inference,
+        "xgboost_inference_used_fallback_path": best_summary.xgboost_inference_used_fallback_path,
         "key_evaluation_metrics": {
             "val": best_summary.val_metrics,
             "test": best_summary.test_metrics,
@@ -624,6 +683,9 @@ def train_task(
                 "shap_artifacts": run.shap_artifacts,
                 "xgboost_device_requested": run.xgboost_device_requested,
                 "xgboost_device_used": run.xgboost_device_used,
+                "xgboost_device_used_for_training": run.xgboost_device_used_for_training,
+                "xgboost_device_used_for_inference": run.xgboost_device_used_for_inference,
+                "xgboost_inference_used_fallback_path": run.xgboost_inference_used_fallback_path,
                 "warnings": list(run.warnings),
             }
             for run in run_summaries
@@ -635,6 +697,11 @@ def train_task(
             "feature_selection_strategy": best_summary.feature_selection_strategy,
             "xgboost_device_requested": best_summary.xgboost_device_requested,
             "xgboost_device_used": best_summary.xgboost_device_used,
+            "xgboost_device_used_for_training": best_summary.xgboost_device_used_for_training,
+            "xgboost_device_used_for_inference": best_summary.xgboost_device_used_for_inference,
+            "xgboost_inference_used_fallback_path": (
+                best_summary.xgboost_inference_used_fallback_path
+            ),
             "model_path": str(canonical_model_path),
             "metadata_path": str(canonical_metadata_path),
             "val_metrics": best_summary.val_metrics,
@@ -660,4 +727,7 @@ def train_task(
         sampling_strategy=best_summary.sampling_strategy,
         feature_selection_strategy=best_summary.feature_selection_strategy,
         xgboost_device_used=best_summary.xgboost_device_used,
+        xgboost_device_used_for_training=best_summary.xgboost_device_used_for_training,
+        xgboost_device_used_for_inference=best_summary.xgboost_device_used_for_inference,
+        xgboost_inference_used_fallback_path=best_summary.xgboost_inference_used_fallback_path,
     )

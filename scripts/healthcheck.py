@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import importlib
+import json
 import os
 import platform
+import socket
 import sys
 from collections.abc import Iterable
 from pathlib import Path
+from urllib.parse import urlparse
 
 from src.config.settings import get_settings
 
@@ -33,6 +36,7 @@ TRACKED_ENV_KEYS: tuple[str, ...] = (
     "PIPELINE_MLFLOW_ARTIFACTS_DESTINATION",
     "PIPELINE_MLFLOW_SERVER_HOST",
     "PIPELINE_MLFLOW_SERVER_PORT",
+    "PIPELINE_MLFLOW_SERVER_WORKERS",
     "PIPELINE_XGBOOST_DEVICE",
     "PIPELINE_OLLAMA_HOST",
     "PIPELINE_API_HOST",
@@ -65,6 +69,84 @@ def _check_env_keys(keys: Iterable[str]) -> dict[str, bool]:
     return {key: bool(os.getenv(key)) for key in keys}
 
 
+def _check_tcp_reachability(*, host: str, port: int, timeout_seconds: float = 1.5) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout_seconds):
+            return True
+    except OSError:
+        return False
+
+
+def _check_mlflow_reachability(mlflow_tracking_uri: str) -> tuple[bool, str]:
+    parsed = urlparse(mlflow_tracking_uri)
+    if parsed.scheme not in {"http", "https"}:
+        return False, f"tracking URI is not http/https: {mlflow_tracking_uri}"
+
+    host = parsed.hostname
+    port = parsed.port or (443 if parsed.scheme == "https" else 80)
+    if host is None:
+        return False, f"tracking URI host is missing: {mlflow_tracking_uri}"
+
+    reachable = _check_tcp_reachability(host=host, port=port)
+    if reachable:
+        return True, f"reachable at {host}:{port}"
+    return False, f"not reachable at {host}:{port}"
+
+
+def _collect_xgboost_runtime_guardrails(artifacts_dir: Path) -> list[str]:
+    guardrail_lines: list[str] = []
+
+    metadata_paths = {
+        "binary": artifacts_dir / "binary_model_metadata.json",
+        "multiclass": artifacts_dir / "multiclass_model_metadata.json",
+    }
+    evaluation_metric_paths = {
+        "binary": artifacts_dir / "evaluations" / "binary" / "final" / "test_final_metrics.json",
+        "multiclass": (
+            artifacts_dir / "evaluations" / "multiclass" / "final" / "test_final_metrics.json"
+        ),
+    }
+
+    for task_name, metadata_path in metadata_paths.items():
+        if not metadata_path.exists():
+            guardrail_lines.append(f"{task_name}: metadata missing ({metadata_path})")
+            continue
+
+        payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+        requested = payload.get("xgboost_device_requested")
+        used_training = payload.get("xgboost_device_used_for_training")
+        if used_training is None:
+            used_training = payload.get("xgboost_device_used")
+
+        used_inference = payload.get("xgboost_device_used_for_inference")
+        if used_inference is None:
+            used_inference = used_training
+
+        fallback_flag = payload.get("xgboost_inference_used_fallback_path")
+        if fallback_flag is None:
+            fallback_flag = bool(used_training == "cuda" and used_inference == "cpu")
+
+        runtime_inference = None
+        runtime_fallback = None
+        metrics_path = evaluation_metric_paths[task_name]
+        if metrics_path.exists():
+            metrics_payload = json.loads(metrics_path.read_text(encoding="utf-8"))
+            runtime_payload = metrics_payload.get("inference_runtime", {})
+            if isinstance(runtime_payload, dict):
+                runtime_inference = runtime_payload.get("xgboost_device_used_for_inference")
+                runtime_fallback = runtime_payload.get("inference_used_fallback_path")
+
+        effective_inference = runtime_inference or used_inference
+        effective_fallback = runtime_fallback if runtime_fallback is not None else fallback_flag
+
+        guardrail_lines.append(
+            f"{task_name}: requested={requested}, training={used_training}, "
+            f"inference={effective_inference}, fallback_path={effective_fallback}"
+        )
+
+    return guardrail_lines
+
+
 def _print_title(title: str) -> None:
     print(f"\n{title}")
     print("-" * len(title))
@@ -77,6 +159,8 @@ def main() -> int:
     imports_ok, missing_modules = _check_module_imports(REQUIRED_MODULES)
     dirs_ok, missing_dirs = _check_directories(settings.required_directories())
     env_status = _check_env_keys(TRACKED_ENV_KEYS)
+    mlflow_reachable, mlflow_message = _check_mlflow_reachability(settings.mlflow_tracking_uri)
+    xgboost_guardrails = _collect_xgboost_runtime_guardrails(settings.artifacts_dir_path)
 
     _print_title("Environment")
     print(f"Python version: {python_version}")
@@ -110,6 +194,15 @@ def main() -> int:
         print(f"Raw dataset found: {settings.raw_data_path}")
     else:
         print(f"Raw dataset not found yet: {settings.raw_data_path}")
+
+    _print_title("MLflow Reachability")
+    print(f"Tracking URI: {settings.mlflow_tracking_uri}")
+    print(f"Reachable: {'PASS' if mlflow_reachable else 'WARN'}")
+    print(f"Details: {mlflow_message}")
+
+    _print_title("XGBoost Runtime Guardrails")
+    for line in xgboost_guardrails:
+        print(f"- {line}")
 
     success = python_ok and imports_ok and dirs_ok
     _print_title("Summary")
