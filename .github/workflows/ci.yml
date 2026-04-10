@@ -28,7 +28,7 @@ jobs:
 
       - name: Streamlit entrypoint import smoke
         run: |
-          python -c "import importlib.util; from pathlib import Path; p=Path('streamlit_app.py'); spec=importlib.util.spec_from_file_location('streamlit_app', p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); assert hasattr(m, 'main')"
+          python -c "import streamlit_app; assert hasattr(streamlit_app, 'main')"
 
       - name: Frontend lightweight tests
         run: pytest tests/test_streamlit_frontend_lightweight.py

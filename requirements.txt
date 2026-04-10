@@ -1,5 +1,6 @@
 # Lightweight runtime for Streamlit deployment and frontend CI smoke checks.
 # Full local development/training dependencies remain in pyproject.toml via uv.
+# pydantic / pydantic-settings are intentionally excluded from this path.
 streamlit>=1.44.0
 pandas>=2.2.0
 numpy>=1.26.0

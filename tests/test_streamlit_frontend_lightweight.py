@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
+import subprocess
+import sys
 from pathlib import Path
 
 from src.frontend.loaders import missing_prediction_artifacts, resolve_frontend_paths
@@ -37,6 +39,39 @@ def test_streamlit_entrypoint_imports_main() -> None:
     spec.loader.exec_module(module)
 
     assert hasattr(module, "main")
+
+
+def test_src_package_import_does_not_eager_import_settings() -> None:
+    command = [
+        sys.executable,
+        "-c",
+        "import src, sys; assert 'src.config.settings' not in sys.modules",
+    ]
+    result = subprocess.run(command, check=False, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+
+
+def test_streamlit_import_without_pydantic_dependency_chain() -> None:
+    script = (
+        "import builtins\n"
+        "orig_import = builtins.__import__\n"
+        "def blocked(name, globals=None, locals=None, fromlist=(), level=0):\n"
+        "    if name == 'pydantic' or name.startswith('pydantic.'):\n"
+        "        raise ModuleNotFoundError(\"No module named 'pydantic'\")\n"
+        "    if name == 'pydantic_settings' or name.startswith('pydantic_settings.'):\n"
+        "        raise ModuleNotFoundError(\"No module named 'pydantic_settings'\")\n"
+        "    return orig_import(name, globals, locals, fromlist, level)\n"
+        "builtins.__import__ = blocked\n"
+        "import streamlit_app\n"
+        "assert hasattr(streamlit_app, 'main')\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_deterministic_explanation_fallback_contract() -> None:

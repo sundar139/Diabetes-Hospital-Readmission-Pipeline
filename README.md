@@ -241,6 +241,7 @@ Repository deployment notes:
 - this repository uses a lightweight root `requirements.txt` for frontend deployment/runtime only
 - lightweight frontend runtime dependencies include Streamlit, pandas, numpy, scikit-learn, XGBoost, and joblib
 - full local development and training dependencies (including SHAP, MLflow, FastAPI, Boruta) remain in `pyproject.toml`
+- package root imports are kept side-effect free so `streamlit_app.py` can import in lightweight environments without loading backend settings
 - install the full stack locally with `uv sync --group dev --extra eda`
 - `.streamlit/config.toml` provides theme and server configuration
 - `runtime.txt` pins Python runtime to `3.11`
