@@ -9,6 +9,8 @@ MODULES: tuple[str, ...] = (
     "src.config",
     "src.config.settings",
     "src.data",
+    "src.data.preprocess",
+    "src.data.split",
     "src.features",
     "src.models",
     "src.serving",

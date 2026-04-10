@@ -79,6 +79,34 @@ Generated artifacts:
 - `artifacts/raw_validation_summary.json`
 - `reports/figures/readmitted_class_distribution.png` (generated when matplotlib is available)
 
+## Processed Data Build
+
+Run preprocessing, binary-target derivation, and grouped split:
+
+```powershell
+uv run python scripts/build_processed_data.py
+```
+
+Binary target derivation:
+
+- source target: `readmitted`
+- derived target: `readmitted_30d`
+- mapping: `<30 -> 1`, `NO -> 0`, `>30 -> 0`
+
+Patient-level leakage prevention:
+
+- split strategy uses grouped splitting by `patient_nbr`
+- each patient appears in exactly one split (train, val, or test)
+- `encounter_id` and `patient_nbr` are excluded from model feature candidates
+
+Generated outputs:
+
+- `data/processed/train.parquet`
+- `data/processed/val.parquet`
+- `data/processed/test.parquet`
+- `artifacts/split_manifest.json`
+- `reports/processed_data_report.md`
+
 ## Cross-Platform Command Reference
 
 Run lint:
@@ -103,6 +131,12 @@ Run raw validation:
 
 ```powershell
 uv run python scripts/run_raw_validation.py
+```
+
+Build processed datasets:
+
+```powershell
+uv run python scripts/build_processed_data.py
 ```
 
 Print project paths and active config:
