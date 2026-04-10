@@ -19,12 +19,12 @@
 
 | Task | Best Model | Primary Metric | Value |
 | --- | --- | --- | --- |
-| Binary (readmitted_30d) | xgboost | F1 | 0.3667 |
-| Multiclass (readmitted) | xgboost | Macro F1 | 0.5276 |
+| Binary (readmitted_30d) | xgboost | F1 | 0.3661 |
+| Multiclass (readmitted) | xgboost | Macro F1 | 0.5250 |
 
 ## Binary Imbalance Handling Impact
 
-- Sampling best test F1=0.3628 vs no-sampling best test F1=0.3667; improved=False.
+- Sampling best test F1=0.3645 vs no-sampling best test F1=0.3661; improved=False.
 
 ## Feature Selection Usage
 

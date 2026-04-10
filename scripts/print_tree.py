@@ -23,7 +23,17 @@ def main() -> int:
     print(f"binary_positive_label  {settings.binary_positive_label}")
     print(f"default_model_name     {settings.default_model_name}")
     print(f"mlflow_tracking_uri    {settings.mlflow_tracking_uri}")
+    print(f"mlflow_backend_store   {settings.mlflow_backend_store_uri_resolved}")
+    print(f"mlflow_artifacts_raw   {settings.mlflow_artifacts_destination}")
+    print(f"mlflow_artifacts_uri   {settings.mlflow_artifacts_destination_uri_resolved}")
+    try:
+        print(f"mlflow_artifacts_path  {settings.mlflow_artifacts_destination_path}")
+    except ValueError:
+        print("mlflow_artifacts_path  non-local-uri")
+    print(f"mlflow_server_host     {settings.mlflow_server_host}")
+    print(f"mlflow_server_port     {settings.mlflow_server_port}")
     print(f"mlflow_experiment      {settings.mlflow_experiment_name}")
+    print(f"xgboost_device         {settings.xgboost_device}")
     print(f"api_host               {settings.api_host}")
     print(f"api_port               {settings.api_port}")
     print(f"ollama_host            {settings.ollama_host}")

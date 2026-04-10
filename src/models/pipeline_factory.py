@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Any, Literal
 
+import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
@@ -14,12 +16,60 @@ from xgboost import XGBClassifier
 
 TaskType = Literal["binary", "multiclass"]
 ModelFamily = Literal["logistic_regression", "random_forest", "xgboost"]
+XGBoostDeviceSetting = Literal["auto", "cuda", "cpu"]
+XGBoostRuntimeDevice = Literal["cuda", "cpu"]
 
 
 @dataclass(frozen=True)
 class FeatureColumnSpec:
     numeric_columns: tuple[str, ...]
     categorical_columns: tuple[str, ...]
+
+
+@lru_cache(maxsize=1)
+def _detect_xgboost_cuda_support() -> tuple[bool, str | None]:
+    try:
+        x_probe = np.asarray([[0.0], [1.0], [0.2], [1.2]], dtype=float)
+        y_probe = np.asarray([0, 1, 0, 1], dtype=int)
+
+        probe_model = XGBClassifier(
+            n_estimators=1,
+            max_depth=1,
+            learning_rate=1.0,
+            objective="binary:logistic",
+            eval_metric="logloss",
+            tree_method="hist",
+            device="cuda",
+            random_state=0,
+            n_jobs=1,
+        )
+        probe_model.fit(x_probe, y_probe)
+    except Exception as exc:
+        return False, str(exc)
+
+    return True, None
+
+
+def resolve_xgboost_runtime_device(
+    *,
+    requested_device: XGBoostDeviceSetting,
+) -> tuple[XGBoostRuntimeDevice, tuple[str, ...]]:
+    mode = requested_device.strip().lower()
+    if mode == "cpu":
+        return "cpu", ()
+
+    cuda_available, detection_error = _detect_xgboost_cuda_support()
+    if cuda_available:
+        return "cuda", ()
+
+    fallback_message = "xgboost_device=auto detected no CUDA support; using cpu."
+    if mode == "cuda":
+        fallback_message = "xgboost_device=cuda requested but CUDA is unavailable; using cpu."
+
+    if detection_error:
+        fallback_message += f" Detection error: {detection_error}"
+
+    return "cpu", (fallback_message,)
 
 
 def resolve_feature_columns(
@@ -119,6 +169,7 @@ def build_estimator(
     num_multiclass_labels: int = 3,
     class_weight: str | dict[int, float] | None = None,
     scale_pos_weight: float | None = None,
+    xgboost_device: XGBoostRuntimeDevice = "cpu",
     extra_params: dict[str, Any] | None = None,
 ) -> LogisticRegression | RandomForestClassifier | XGBClassifier:
     params = dict(extra_params or {})
@@ -147,6 +198,9 @@ def build_estimator(
         return RandomForestClassifier(**default_params)
 
     if model_family == "xgboost":
+        if xgboost_device not in {"cuda", "cpu"}:
+            raise ValueError("xgboost_device must be 'cuda' or 'cpu'.")
+
         default_params = {
             "n_estimators": 350,
             "max_depth": 6,
@@ -157,6 +211,7 @@ def build_estimator(
             "n_jobs": -1,
             "random_state": random_state,
             "tree_method": "hist",
+            "device": xgboost_device,
         }
         if task_type == "binary":
             default_params.update({"objective": "binary:logistic", "eval_metric": "logloss"})

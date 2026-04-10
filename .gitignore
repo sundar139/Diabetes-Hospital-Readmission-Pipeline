@@ -34,8 +34,10 @@ data/processed/**
 !data/processed/.gitkeep
 artifacts/**
 !artifacts/.gitkeep
+!artifacts/sample_payload.json
 reports/figures/**
 !reports/figures/.gitkeep
+mlartifacts/
 mlruns/
 
 # Misc

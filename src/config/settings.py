@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import cast
+from typing import Literal, cast
+from urllib.parse import urlparse
+from urllib.request import url2pathname
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -10,6 +12,82 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 def _default_project_root() -> Path:
     return Path(__file__).resolve().parents[2]
+
+
+def _looks_like_windows_drive(path_value: str) -> bool:
+    normalized = path_value.replace("/", "\\")
+    return len(normalized) >= 2 and normalized[1] == ":"
+
+
+def _strip_windows_drive_leading_slash(path_value: str) -> str:
+    if path_value.startswith("/") and _looks_like_windows_drive(path_value[1:]):
+        return path_value[1:]
+    return path_value
+
+
+def _has_uri_scheme(path_value: str) -> bool:
+    value = path_value.strip()
+    if not value:
+        return False
+    if _looks_like_windows_drive(value):
+        return False
+    return bool(urlparse(value).scheme)
+
+
+def _resolve_local_path(path_value: str, *, project_root: Path) -> Path:
+    candidate = Path(_strip_windows_drive_leading_slash(path_value.strip()))
+    if candidate.is_absolute() or _looks_like_windows_drive(path_value):
+        return candidate.resolve()
+    return (project_root / candidate).resolve()
+
+
+def _resolve_sqlite_backend_store_uri(uri: str, *, project_root: Path) -> str:
+    sqlite_prefix = "sqlite:///"
+    if not uri.lower().startswith(sqlite_prefix):
+        return uri
+
+    sqlite_path = _strip_windows_drive_leading_slash(uri[len(sqlite_prefix) :])
+    if not sqlite_path or sqlite_path == ":memory:":
+        return uri
+
+    resolved_path = _resolve_local_path(sqlite_path, project_root=project_root)
+
+    return f"sqlite:///{resolved_path.as_posix()}"
+
+
+def _resolve_mlflow_artifacts_destination_uri(raw_value: str, *, project_root: Path) -> str:
+    value = raw_value.strip()
+    if not value:
+        raise ValueError("mlflow_artifacts_destination must not be empty.")
+
+    if _has_uri_scheme(value):
+        return value
+
+    return _resolve_local_path(value, project_root=project_root).as_uri()
+
+
+def _resolve_mlflow_artifacts_destination_local_path(
+    raw_value: str,
+    *,
+    project_root: Path,
+) -> Path | None:
+    value = raw_value.strip()
+    if not value:
+        return None
+
+    if _has_uri_scheme(value):
+        parsed = urlparse(value)
+        if parsed.scheme.lower() != "file":
+            return None
+
+        parsed_path = url2pathname(parsed.path)
+        if parsed.netloc and parsed.netloc.lower() not in {"", "localhost"}:
+            path_value = f"//{parsed.netloc}{parsed_path}"
+        else:
+            path_value = parsed_path
+        return _resolve_local_path(path_value, project_root=project_root)
+
+    return _resolve_local_path(value, project_root=project_root)
 
 
 class Settings(BaseSettings):
@@ -42,8 +120,14 @@ class Settings(BaseSettings):
     default_model_name: str = "xgboost"
     model_registry_name: str = "diabetes_readmission"
 
-    mlflow_tracking_uri: str = "file:./mlruns"
+    mlflow_tracking_uri: str = "http://127.0.0.1:5000"
+    mlflow_backend_store_uri: str = "sqlite:///mlflow.db"
+    mlflow_artifacts_destination: str = "./mlartifacts"
+    mlflow_server_host: str = "127.0.0.1"
+    mlflow_server_port: int = 5000
     mlflow_experiment_name: str = "diabetes-readmission"
+
+    xgboost_device: Literal["auto", "cuda", "cpu"] = "auto"
 
     api_host: str = "127.0.0.1"
     api_port: int = 8000
@@ -66,6 +150,21 @@ class Settings(BaseSettings):
         if not 1 <= value <= 65535:
             raise ValueError("api_port must be in range 1..65535.")
         return value
+
+    @field_validator("mlflow_server_port")
+    @classmethod
+    def _validate_mlflow_server_port(cls, value: int) -> int:
+        if not 1 <= value <= 65535:
+            raise ValueError("mlflow_server_port must be in range 1..65535.")
+        return value
+
+    @field_validator("xgboost_device")
+    @classmethod
+    def _validate_xgboost_device(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {"auto", "cuda", "cpu"}:
+            raise ValueError("xgboost_device must be one of: auto, cuda, cpu.")
+        return normalized
 
     @field_validator("multiclass_labels", mode="before")
     @classmethod
@@ -109,6 +208,49 @@ class Settings(BaseSettings):
         return self._resolve_path(self.figures_dir)
 
     @property
+    def mlflow_artifacts_destination_path(self) -> Path:
+        local_path = _resolve_mlflow_artifacts_destination_local_path(
+            self.mlflow_artifacts_destination,
+            project_root=self.project_root,
+        )
+        if local_path is None:
+            raise ValueError(
+                "mlflow_artifacts_destination is a non-local URI and cannot be represented "
+                "as a filesystem path."
+            )
+        return local_path
+
+    @property
+    def mlflow_artifacts_destination_uri_resolved(self) -> str:
+        return _resolve_mlflow_artifacts_destination_uri(
+            self.mlflow_artifacts_destination,
+            project_root=self.project_root,
+        )
+
+    @property
+    def mlflow_backend_store_uri_resolved(self) -> str:
+        return _resolve_sqlite_backend_store_uri(
+            self.mlflow_backend_store_uri,
+            project_root=self.project_root,
+        )
+
+    @property
+    def mlflow_backend_store_path(self) -> Path | None:
+        resolved_uri = self.mlflow_backend_store_uri_resolved
+        sqlite_prefix = "sqlite:///"
+        if not resolved_uri.lower().startswith(sqlite_prefix):
+            return None
+
+        db_path = _strip_windows_drive_leading_slash(resolved_uri[len(sqlite_prefix) :])
+        if not db_path or db_path == ":memory:":
+            return None
+        return Path(db_path).resolve()
+
+    @property
+    def mlflow_server_url(self) -> str:
+        return f"http://{self.mlflow_server_host}:{self.mlflow_server_port}"
+
+    @property
     def raw_data_path(self) -> Path:
         return self.raw_data_dir_path / self.raw_data_filename
 
@@ -122,7 +264,7 @@ class Settings(BaseSettings):
         )
 
     def important_paths(self) -> dict[str, Path]:
-        return {
+        paths = {
             "project_root": self.project_root.resolve(),
             "raw_data_dir": self.raw_data_dir_path,
             "raw_data_path": self.raw_data_path,
@@ -131,6 +273,13 @@ class Settings(BaseSettings):
             "reports_dir": self.reports_dir_path,
             "figures_dir": self.figures_dir_path,
         }
+
+        try:
+            paths["mlflow_artifacts_destination"] = self.mlflow_artifacts_destination_path
+        except ValueError:
+            pass
+
+        return paths
 
 
 @lru_cache(maxsize=1)

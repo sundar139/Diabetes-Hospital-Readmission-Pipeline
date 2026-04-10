@@ -1,0 +1,152 @@
+{
+  "binary_probability_drift": {
+    "current_count": 5000,
+    "psi": 0.002432362862340654,
+    "reference_count": 5000,
+    "status": "stable"
+  },
+  "binary_probability_summary": {
+    "count": 5000,
+    "max": 0.9195299744606018,
+    "mean": 0.3722975758548826,
+    "min": 0.0148596977815032,
+    "p10": 0.08754174262285233,
+    "p50": 0.31586164236068726,
+    "p90": 0.7175719141960144,
+    "std": 0.2430180517678645
+  },
+  "feature_drift": {
+    "age_bucket_risk": {
+      "absolute_mean_shift": 0.12019999999999964,
+      "current_count": 5000,
+      "current_mean": 5.9916,
+      "psi": 0.006518621434331657,
+      "reference_count": 5000,
+      "reference_mean": 5.8714,
+      "status": "stable"
+    },
+    "complex_discharge_flag": {
+      "absolute_mean_shift": 0.0030000000000000027,
+      "current_count": 5000,
+      "current_mean": 0.333,
+      "psi": 0.0,
+      "reference_count": 5000,
+      "reference_mean": 0.33,
+      "status": "stable"
+    },
+    "medication_change_ratio": {
+      "absolute_mean_shift": 0.0003043469041585922,
+      "current_count": 5000,
+      "current_mean": 0.00893043540418148,
+      "psi": 0.0001981004942454904,
+      "reference_count": 5000,
+      "reference_mean": 0.009234782308340073,
+      "status": "stable"
+    },
+    "num_medications": {
+      "absolute_mean_shift": 0.18359999999999843,
+      "current_count": 5000,
+      "current_mean": 15.0614,
+      "psi": 0.005016086247528025,
+      "reference_count": 5000,
+      "reference_mean": 15.245,
+      "status": "stable"
+    },
+    "number_diagnoses": {
+      "absolute_mean_shift": 0.012799999999999478,
+      "current_count": 5000,
+      "current_mean": 6.7088,
+      "psi": 0.0003836264034891352,
+      "reference_count": 5000,
+      "reference_mean": 6.7216,
+      "status": "stable"
+    },
+    "patient_severity": {
+      "absolute_mean_shift": 0.0019337385892868042,
+      "current_count": 5000,
+      "current_mean": 0.2199801504611969,
+      "psi": 0.0021979060528009887,
+      "reference_count": 5000,
+      "reference_mean": 0.2180464118719101,
+      "status": "stable"
+    },
+    "recurrency": {
+      "absolute_mean_shift": 0.07240000000000002,
+      "current_count": 5000,
+      "current_mean": 0.9886,
+      "psi": 0.0005371152606493759,
+      "reference_count": 5000,
+      "reference_mean": 0.9162,
+      "status": "stable"
+    },
+    "time_in_hospital": {
+      "absolute_mean_shift": 0.11879999999999935,
+      "current_count": 5000,
+      "current_mean": 4.6964,
+      "psi": 0.004729828101458827,
+      "reference_count": 5000,
+      "reference_mean": 4.5776,
+      "status": "stable"
+    },
+    "utilization_intensity": {
+      "absolute_mean_shift": 0.02799999713897705,
+      "current_count": 5000,
+      "current_mean": 0.8040000200271606,
+      "psi": 6.5718516753963e-05,
+      "reference_count": 5000,
+      "reference_mean": 0.8320000171661377,
+      "status": "stable"
+    }
+  },
+  "generated_at_utc": "2026-04-10T03:57:52.654784+00:00",
+  "label_monitoring": {
+    "labels_available": true,
+    "performance_monitoring": "labels_present_but_not_scored_in_this_report",
+    "true_label_30d_count": 5000,
+    "true_label_count": 5000
+  },
+  "model_version": {
+    "binary_model": {
+      "feature_count": 53,
+      "metadata_path": "C:\\Users\\rohit\\Documents\\Personal Projects\\Diabetes Hospital Readmission Pipeline\\artifacts\\binary_model_metadata.json",
+      "model_family": "xgboost",
+      "training_timestamp_utc": "2026-04-10T03:31:39.462434+00:00"
+    },
+    "multiclass_model": {
+      "feature_count": 53,
+      "metadata_path": "C:\\Users\\rohit\\Documents\\Personal Projects\\Diabetes Hospital Readmission Pipeline\\artifacts\\multiclass_model_metadata.json",
+      "model_family": "xgboost",
+      "training_timestamp_utc": "2026-04-10T03:50:12.158080+00:00"
+    }
+  },
+  "monitoring_narrative": "Monitoring summary generated for local model operations. Compared 5000 prediction records against 5000 reference rows. Binary-probability drift status is 'stable'. Warnings reported: 0.",
+  "monitoring_narrative_mode": "fallback",
+  "prediction_distribution": {
+    "binary_prediction_counts": {
+      "0": 3256,
+      "1": 1744
+    },
+    "binary_prediction_rates": {
+      "0": 0.6512,
+      "1": 0.3488
+    },
+    "multiclass_prediction_counts": {
+      "<30": 34,
+      ">30": 1710,
+      "NO": 3256
+    },
+    "multiclass_prediction_rates": {
+      "<30": 0.0068,
+      ">30": 0.342,
+      "NO": 0.6512
+    },
+    "n_records": 5000
+  },
+  "prediction_log_path": "C:\\Users\\rohit\\Documents\\Personal Projects\\Diabetes Hospital Readmission Pipeline\\artifacts\\monitoring\\prediction_log.jsonl",
+  "sample_sizes": {
+    "current_feature_rows": 5000,
+    "prediction_records": 5000,
+    "reference_rows": 5000
+  },
+  "warnings": []
+}

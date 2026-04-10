@@ -18,7 +18,12 @@ MODULES: tuple[str, ...] = (
     "src.models.pipeline_factory",
     "src.models.predict",
     "src.models.train",
+    "src.serving.api",
+    "src.serving.schemas",
     "src.serving",
+    "src.llm.explain",
+    "src.llm.prompting",
+    "src.monitoring.drift_monitor",
     "src.monitoring",
     "src.llm",
 )

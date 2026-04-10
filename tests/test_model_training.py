@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from src.config.settings import Settings
 from src.models.train import train_task
 
 
@@ -107,3 +108,29 @@ def test_multiclass_training_produces_expected_metadata(tmp_path: Path) -> None:
     assert metadata["target_column"] == "readmitted"
     assert metadata["class_labels"] == ["NO", ">30", "<30"]
     assert metadata["feature_selection_strategy"] == "none"
+
+
+def test_xgboost_training_persists_device_selection_metadata(tmp_path: Path) -> None:
+    processed_dir, metadata_path, artifacts_dir = _prepare_feature_splits(tmp_path)
+    settings = Settings(_env_file=None, xgboost_device="cpu")
+
+    result = train_task(
+        task_type="binary",
+        model_families=("xgboost",),
+        sampling_strategies=("none",),
+        feature_selection_strategy="none",
+        enable_mlflow=False,
+        settings=settings,
+        processed_dir=processed_dir,
+        feature_metadata_path=metadata_path,
+        artifacts_dir=artifacts_dir,
+    )
+
+    metadata = json.loads(result.best_metadata_path.read_text(encoding="utf-8"))
+    assert metadata["xgboost_device_requested"] == "cpu"
+    assert metadata["xgboost_device_used"] == "cpu"
+
+    results_payload = json.loads(result.training_results_path.read_text(encoding="utf-8"))
+    assert results_payload["best_run"]["xgboost_device_requested"] == "cpu"
+    assert results_payload["best_run"]["xgboost_device_used"] == "cpu"
+    assert results_payload["runs"][0]["xgboost_device_used"] == "cpu"

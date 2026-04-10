@@ -94,6 +94,7 @@ def main() -> int:
     print(f"- training_results: {result.training_results_path}")
     print(f"- best_model_family: {result.model_family}")
     print(f"- best_feature_selection: {result.feature_selection_strategy}")
+    print(f"- best_xgboost_device: {result.xgboost_device_used or 'n/a'}")
     print(f"- best_val_metrics: {val_summary}")
     print(f"- best_test_metrics: {test_summary}")
     return 0

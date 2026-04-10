@@ -1,103 +1,137 @@
-# End-to-End Hospital Readmission Prediction for Diabetic Patients
+﻿# Diabetes Hospital Readmission Pipeline
 
-This repository provides a production-style foundation for a tabular machine learning project with MLOps and LLMOps support. The project targets hospital readmission prediction for diabetic patients and is organized for clean iteration from data ingestion to model serving.
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![FastAPI](https://img.shields.io/badge/api-FastAPI-009688)
+![MLflow](https://img.shields.io/badge/mlflow-SQLite%20tracking%20server-0A7DB8)
+![Ruff](https://img.shields.io/badge/lint-ruff-46A2F1)
+![Pytest](https://img.shields.io/badge/tests-pytest-0A9EDC)
 
-## Project Overview
+Production-minded, local-first machine learning pipeline for diabetic patient readmission prediction.
 
-- Problem scope: diabetic patient readmission prediction
-- Initial tasks: robust project scaffold, configuration, quality gates, and utility scripts
-- Planned serving stack: FastAPI for model APIs and Ollama-backed explanation endpoints
-- Experiment tracking: MLflow
-- Package management: uv
+This repository demonstrates a complete workflow from raw data validation to model training, explainable serving, monitoring, packaging, and CI. The stack is intentionally local and reproducible, with no fake cloud claims.
 
-## Architecture Summary
+## Problem Overview
 
-- `src/config`: typed runtime settings and path management
-- `src/data`: data ingestion and validation components
-- `src/features`: feature engineering and transformation modules
-- `src/models`: training and inference logic
-- `src/serving`: API schemas and service handlers
-- `src/monitoring`: model and data monitoring logic
-- `src/llm`: natural-language explanation workflows
-- `scripts`: health and diagnostics utilities
-- `tests`: smoke and unit tests
+Hospital readmissions are expensive for health systems and stressful for patients. Early readmission risk estimation helps prioritize case management, discharge planning, and follow-up resources.
+
+This project models:
+
+- Binary early-readmission risk (`readmitted_30d`, where `<30` is positive)
+- Multiclass readmission category (`NO`, `>30`, `<30`)
+
+## Why This Matters
+
+Readmission prediction is a practical healthcare ML use case with real operational impact:
+
+- Supports targeted interventions for high-risk discharges
+- Improves resource allocation in care coordination teams
+- Encourages transparent, monitorable model operations rather than one-off notebooks
 
 ## Dataset
 
-Primary dataset source:
+Primary source:
 
-- UCI/Kaggle Diabetes 130-US hospitals dataset
+- UCI / Kaggle Diabetes 130-US hospitals dataset
 
-Expected local path:
+Expected local dataset path:
 
 - `data/raw/diabetic_data.csv`
 
-This scaffold assumes the raw dataset is stored locally and does not include dataset download automation yet.
+The repository does not auto-download external data. Place the dataset locally before running pipeline scripts.
+
+## Architecture Summary
+
+- `src/config`: typed settings and path/URI resolution
+- `src/data`: raw loading, schema checks, preprocessing, grouped split
+- `src/features`: clinical feature engineering
+- `src/models`: estimator factory, training, evaluation, prediction helpers
+- `src/serving`: FastAPI app, prediction/explanation contracts
+- `src/llm`: Ollama-backed explanation helpers with deterministic fallback
+- `src/monitoring`: local drift and monitoring summary utilities
+- `scripts`: operational entry points
+- `tests`: unit and smoke coverage
+
+## Repository Structure
+
+```text
+.
+|-- .github/workflows/ci.yml
+|-- artifacts/
+|-- data/
+|   |-- processed/
+|   `-- raw/
+|-- reports/
+|-- scripts/
+|   |-- build_processed_data.py
+|   |-- build_feature_sets.py
+|   |-- run_api.py
+|   |-- run_evaluation.py
+|   |-- run_mlflow_server.py
+|   |-- run_monitoring_report.py
+|   |-- run_raw_validation.py
+|   |-- reset_mlflow_dev_store.py
+|   |-- train_binary.py
+|   `-- train_multiclass.py
+|-- src/
+|   |-- config/
+|   |-- data/
+|   |-- features/
+|   |-- llm/
+|   |-- models/
+|   |-- monitoring/
+|   `-- serving/
+|-- tests/
+|-- .dockerignore
+|-- .env.example
+|-- Dockerfile
+|-- pyproject.toml
+`-- README.md
+```
 
 ## Setup
 
-1. Install uv.
+1. Install uv
 
 ```powershell
 pip install uv
 ```
 
-1. Sync dependencies, including dev tools and optional EDA extras.
+2. Install dependencies
 
 ```powershell
 uv sync --group dev --extra eda
 ```
 
-1. Create a local environment file.
+3. Create local environment file
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-1. Place dataset at `data/raw/diabetic_data.csv`.
+4. Place dataset at `data/raw/diabetic_data.csv`
 
-## Raw Validation Before Preprocessing
+## Raw Validation Flow
 
-Run raw-data validation and reporting:
+Validate raw data quality and schema assumptions before transformation:
 
 ```powershell
 uv run python scripts/run_raw_validation.py
 ```
 
-Why this step exists:
-
-- verifies schema assumptions before any transformations
-- quantifies missing and null-like values (`?`, empty strings, whitespace-only tokens, and standard nulls)
-- surfaces identifier and target integrity risks early
-- creates deterministic artifacts for reproducibility and review
-
-Generated artifacts:
+Generated outputs include:
 
 - `reports/raw_validation_report.md`
 - `reports/raw_validation_summary.json`
 - `reports/data_dictionary.md`
 - `artifacts/raw_validation_summary.json`
-- `reports/figures/readmitted_class_distribution.png` (generated when matplotlib is available)
 
-## Processed Data Build
+## Preprocessing and Grouped Splitting Flow
 
-Run preprocessing, binary-target derivation, and grouped split:
+Build cleaned data and leakage-aware patient-level split:
 
 ```powershell
 uv run python scripts/build_processed_data.py
 ```
-
-Binary target derivation:
-
-- source target: `readmitted`
-- derived target: `readmitted_30d`
-- mapping: `<30 -> 1`, `NO -> 0`, `>30 -> 0`
-
-Patient-level leakage prevention:
-
-- split strategy uses grouped splitting by `patient_nbr`
-- each patient appears in exactly one split (train, val, or test)
-- `encounter_id` and `patient_nbr` are excluded from model feature candidates
 
 Generated outputs:
 
@@ -107,31 +141,15 @@ Generated outputs:
 - `artifacts/split_manifest.json`
 - `reports/processed_data_report.md`
 
-## Clinical Feature Engineering
+## Feature Engineering Summary
 
-Run feature set construction:
+Construct clinically oriented features:
 
 ```powershell
 uv run python scripts/build_feature_sets.py
 ```
 
-Engineered features:
-
-- `recurrency`: split-local repeated patient encounter count proxy (`encounter_count_for_patient - 1`)
-- `patient_severity`: weighted severity index from stay length, diagnoses, and prior utilization
-- `medication_change_ratio`: share of diabetes medication statuses in `{Up, Down}` per encounter
-- `utilization_intensity`: `number_inpatient + number_outpatient + number_emergency`
-- `complex_discharge_flag`: indicator for non-home-like discharge disposition
-- `age_bucket_risk`: ordinal risk derived from age bucket lower bound
-
-Why these features matter clinically:
-
-- they capture prior utilization burden and return-visit tendencies
-- they summarize acuity and care complexity into model-ready signals
-- they represent treatment adjustment intensity and transition-of-care difficulty
-- they inject age-associated baseline vulnerability in transparent form
-
-Generated outputs:
+Engineered outputs:
 
 - `data/processed/train_features.parquet`
 - `data/processed/val_features.parquet`
@@ -139,19 +157,7 @@ Generated outputs:
 - `artifacts/feature_metadata.json`
 - `reports/feature_engineering_report.md`
 
-## Model Training and Evaluation
-
-Two prediction tasks are supported:
-
-- binary early-readmission task (`readmitted_30d`)
-- multiclass readmission task (`readmitted` with classes `NO`, `>30`, `<30`)
-
-Model strategy:
-
-- baselines: LogisticRegression and RandomForestClassifier
-- primary model: XGBClassifier
-- optional binary sampling strategies: `none`, `over`, `under`
-- optional feature selection strategy: `none`, `boruta` (gracefully skipped if unavailable)
+## Training and Evaluation
 
 Train binary models:
 
@@ -165,19 +171,13 @@ Train multiclass models:
 uv run python scripts/train_multiclass.py
 ```
 
-Run final saved-model evaluation and generate comparison report:
+Run saved-model evaluation:
 
 ```powershell
 uv run python scripts/run_evaluation.py
 ```
 
-Launch MLflow UI locally:
-
-```powershell
-uv run mlflow ui --backend-store-uri ./mlruns
-```
-
-Primary modeling artifacts:
+Core artifacts:
 
 - `artifacts/binary_model.joblib`
 - `artifacts/binary_model_metadata.json`
@@ -185,128 +185,210 @@ Primary modeling artifacts:
 - `artifacts/multiclass_model.joblib`
 - `artifacts/multiclass_model_metadata.json`
 - `artifacts/multiclass_training_results.json`
-- `artifacts/evaluations/binary/`
-- `artifacts/evaluations/multiclass/`
 - `reports/model_comparison_report.md`
 
-Interpretability outputs:
+## MLflow Local Workflow (SQLite-Backed)
 
-- tree-based runs generate SHAP summary JSON and optional plots under run-level evaluation folders
-- single-row contribution utilities are available in `src/models/predict.py`
-- SHAP is optional in the default path and may be unavailable on Python 3.13 environments
-
-## Cross-Platform Command Reference
-
-Run lint:
+Start MLflow server:
 
 ```powershell
-uv run ruff check .
+uv run python scripts/run_mlflow_server.py
 ```
 
-Run tests:
+Default local setup:
+
+- Tracking URI (client): `http://127.0.0.1:5000`
+- Backend metadata: `sqlite:///mlflow.db`
+- Artifact destination (configured): `./mlartifacts`
+- Artifact destination (server-ready): normalized to `file:///.../mlartifacts`
+
+Why this matters on Windows:
+
+- Using a raw path like `C:\...\mlartifacts` can break artifact uploads with artifact repository resolution errors.
+- This project normalizes local artifact destinations to file URI format before launching `mlflow server`.
+
+If earlier runs were created under broken artifact destination metadata, reset local dev store:
 
 ```powershell
-uv run pytest
+uv run python scripts/reset_mlflow_dev_store.py --yes
 ```
 
-Run healthcheck:
+This reset deletes only:
+
+- `mlflow.db`
+- `mlartifacts/`
+
+It does not delete:
+
+- `artifacts/`
+- `data/processed/`
+
+## API Usage (FastAPI)
+
+Start API:
 
 ```powershell
-uv run python scripts/healthcheck.py
+uv run python scripts/run_api.py
 ```
 
-Run raw validation:
+Docs and OpenAPI:
+
+- `http://127.0.0.1:8000/docs`
+- `http://127.0.0.1:8000/openapi.json`
+
+Endpoints:
+
+- `GET /health`
+- `POST /predict`
+- `POST /predict-batch`
+- `POST /explain`
+
+Example payload:
+
+- `artifacts/sample_payload.json`
+
+## Ollama Explanation Workflow
+
+Optional local Ollama setup:
 
 ```powershell
-uv run python scripts/run_raw_validation.py
+ollama pull llama3.1:8b
+ollama serve
 ```
 
-Build processed datasets:
+Explanation behavior:
+
+- `/explain` prefers Ollama when requested
+- falls back deterministically when Ollama is unavailable
+- output is non-diagnostic and for model transparency only
+
+## Monitoring and Drift Reporting
+
+Generate local monitoring outputs:
 
 ```powershell
-uv run python scripts/build_processed_data.py
+uv run python scripts/run_monitoring_report.py
 ```
 
-Build clinical feature sets:
+Optional Ollama narrative summary for monitoring:
 
 ```powershell
-uv run python scripts/build_feature_sets.py
+uv run python scripts/run_monitoring_report.py --prefer-ollama
 ```
 
-Train binary models:
+Monitoring records are stored locally as JSONL:
+
+- `artifacts/monitoring/prediction_log.jsonl`
+
+Monitoring outputs:
+
+- `reports/monitoring_summary.json`
+- `reports/monitoring_report.md`
+
+Monitoring includes:
+
+- model version metadata from saved model metadata files
+- prediction distribution summary
+- binary probability summary and drift PSI
+- numeric feature drift summary (PSI-based)
+- explicit warnings for small sample sizes or missing reference data
+- explicit statement when labels are unavailable (no fake live performance metrics)
+
+## XGBoost Device Selection
+
+Config key:
+
+- `PIPELINE_XGBOOST_DEVICE` in `{auto, cuda, cpu}`
+
+Behavior:
+
+- `auto`: attempts CUDA for XGBoost, falls back to CPU with warning
+- `cuda`: requests CUDA, falls back safely if unavailable
+- `cpu`: forces CPU
+
+Notes:
+
+- Device selection applies only to XGBoost
+- LogisticRegression and RandomForest remain CPU baselines
+- device used is captured in training metadata/results and MLflow params
+
+## Docker Usage
+
+Build image:
+
+```powershell
+docker build -t diabetes-readmission-api .
+```
+
+Run container:
+
+```powershell
+docker run --rm -p 8000:8000 diabetes-readmission-api
+```
+
+Container docs URL:
+
+- `http://127.0.0.1:8000/docs`
+
+## CI
+
+GitHub Actions workflow:
+
+- `.github/workflows/ci.yml`
+
+CI runs on push and pull request and executes:
+
+- `uv run ruff check .`
+- `uv run pytest`
+- `uv run python scripts/healthcheck.py`
+- FastAPI import smoke check
+
+## Clean Local Demo Flow
+
+Terminal 1:
+
+```powershell
+uv run python scripts/run_mlflow_server.py
+```
+
+Terminal 2:
+
+```powershell
+uv run python scripts/run_api.py
+```
+
+Terminal 3:
 
 ```powershell
 uv run python scripts/train_binary.py
-```
-
-Train multiclass models:
-
-```powershell
 uv run python scripts/train_multiclass.py
-```
-
-Run final evaluation and model comparison report:
-
-```powershell
 uv run python scripts/run_evaluation.py
+uv run python scripts/run_monitoring_report.py
 ```
 
-Run MLflow UI:
+Local URLs:
 
-```powershell
-uv run mlflow ui --backend-store-uri ./mlruns
-```
+- MLflow UI: `http://127.0.0.1:5000`
+- FastAPI Docs: `http://127.0.0.1:8000/docs`
 
-Print project paths and active config:
+## Limitations
 
-```powershell
-uv run python scripts/print_tree.py
-```
+- Trained on a single public tabular dataset without external validation cohorts
+- Monitoring is local and batch-style, not a streaming production service
+- Label-latency handling and continuous performance backfill are not implemented
+- No cloud deployment in this repository by design
 
-## Planned Pipeline Phases
+## Future Improvements
 
-1. Data ingestion and schema validation
-2. Data cleaning and target construction (`NO`, `>30`, `<30` and binary 30-day target)
-3. Feature engineering and leakage prevention
-4. Baseline model training and evaluation
-5. Imbalance handling and feature selection experiments
-6. Experiment tracking and model registry with MLflow
-7. FastAPI inference endpoints for batch and online predictions
-8. Ollama-based explanation endpoint for natural-language rationale
-9. Monitoring hooks for drift and service health
+- Automated scheduled monitoring runs and trend snapshots
+- Data quality contracts for serving-time payload validation
+- Expanded explainability with calibrated uncertainty reporting
+- Stronger CI matrix (multiple Python versions and platform checks)
 
-## Repository Structure
+## Resume-Ready Highlights
 
-```text
-.
-|-- artifacts/
-|-- data/
-|   |-- processed/
-|   `-- raw/
-|-- notebooks/
-|-- reports/
-|   `-- figures/
-|-- scripts/
-|   |-- healthcheck.py
-|   `-- print_tree.py
-|-- src/
-|   |-- config/
-|   |   `-- settings.py
-|   |-- data/
-|   |-- features/
-|   |-- llm/
-|   |-- models/
-|   |-- monitoring/
-|   `-- serving/
-|-- tests/
-|   `-- test_smoke_imports.py
-|-- .env.example
-|-- .gitignore
-|-- pyproject.toml
-`-- README.md
-```
-
-## Notes
-
-- The repository currently focuses on clean scaffolding and developer ergonomics.
-- Model training, feature logic, API handlers, and LLM explanation orchestration will be added in subsequent phases.
+- Designed and implemented end-to-end healthcare ML pipeline with reproducible local operations
+- Added leakage-aware grouped splits, feature engineering, model selection, and evaluation reporting
+- Built FastAPI inference service with batch and explanation endpoints plus graceful LLM fallback
+- Migrated MLflow to SQLite-backed tracking server and fixed Windows artifact URI handling
+- Added drift monitoring reports, Docker packaging, and CI automation for demo-ready delivery

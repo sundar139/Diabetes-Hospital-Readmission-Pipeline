@@ -26,6 +26,7 @@ from src.models.pipeline_factory import (
     build_preprocessor,
     estimator_params_for_logging,
     resolve_feature_columns,
+    resolve_xgboost_runtime_device,
 )
 from src.models.predict import generate_tree_shap_summary
 
@@ -45,6 +46,8 @@ class TrainingRunSummary:
     val_metrics: dict[str, Any]
     test_metrics: dict[str, Any]
     shap_artifacts: dict[str, Any]
+    xgboost_device_requested: str | None
+    xgboost_device_used: str | None
     warnings: tuple[str, ...]
 
 
@@ -59,6 +62,7 @@ class TaskTrainingResult:
     model_family: ModelFamily
     sampling_strategy: SamplingStrategy
     feature_selection_strategy: FeatureSelectionStrategy
+    xgboost_device_used: str | None
 
 
 class OptionalBorutaSelector(BaseEstimator, TransformerMixin):
@@ -279,14 +283,18 @@ def _log_mlflow_run(
         mlflow.set_experiment(settings.mlflow_experiment_name)
 
         with mlflow.start_run(run_name=run_summary.run_name):
-            mlflow.log_params(
-                {
-                    "task_type": run_summary.task_type,
-                    "model_family": run_summary.model_family,
-                    "sampling_strategy": run_summary.sampling_strategy,
-                    "feature_selection_strategy": run_summary.feature_selection_strategy,
-                }
-            )
+            run_params: dict[str, str] = {
+                "task_type": run_summary.task_type,
+                "model_family": run_summary.model_family,
+                "sampling_strategy": run_summary.sampling_strategy,
+                "feature_selection_strategy": run_summary.feature_selection_strategy,
+            }
+            if run_summary.xgboost_device_requested is not None:
+                run_params["xgboost_device_requested"] = run_summary.xgboost_device_requested
+            if run_summary.xgboost_device_used is not None:
+                run_params["xgboost_device_used"] = run_summary.xgboost_device_used
+
+            mlflow.log_params(run_params)
             mlflow.log_params({f"model_param.{k}": v for k, v in estimator_params.items()})
 
             numeric_metrics = {
@@ -386,6 +394,10 @@ def train_task(
 
             class_weight: str | dict[int, float] | None = None
             scale_pos_weight: float | None = None
+            run_xgboost_device_requested: str | None = None
+            run_xgboost_device_used: str | None = None
+            estimator_xgboost_device: str = "cpu"
+            device_warnings: list[str] = []
 
             if task_type == "binary" and sampling_strategy == "none":
                 class_weight = "balanced"
@@ -394,6 +406,14 @@ def train_task(
                 if positives > 0:
                     scale_pos_weight = negatives / positives
 
+            if model_family == "xgboost":
+                run_xgboost_device_requested = resolved_settings.xgboost_device
+                run_xgboost_device_used, xgboost_warnings = resolve_xgboost_runtime_device(
+                    requested_device=resolved_settings.xgboost_device
+                )
+                estimator_xgboost_device = run_xgboost_device_used
+                device_warnings.extend(xgboost_warnings)
+
             estimator = build_estimator(
                 model_family=model_family,
                 task_type=task_type,
@@ -401,6 +421,7 @@ def train_task(
                 num_multiclass_labels=len(class_labels),
                 class_weight=class_weight,
                 scale_pos_weight=scale_pos_weight,
+                xgboost_device=estimator_xgboost_device,
             )
 
             selector = OptionalBorutaSelector(
@@ -455,6 +476,7 @@ def train_task(
             joblib.dump(model, model_path)
 
             run_warnings = [
+                *device_warnings,
                 *val_result.warnings,
                 *test_result.warnings,
                 *shap_warnings,
@@ -484,6 +506,8 @@ def train_task(
                 "val_metrics": val_result.metrics,
                 "test_metrics": test_result.metrics,
                 "shap_artifacts": shap_artifacts,
+                "xgboost_device_requested": run_xgboost_device_requested,
+                "xgboost_device_used": run_xgboost_device_used,
                 "warnings": run_warnings,
                 "timestamp_utc": datetime.now(UTC).isoformat(),
             }
@@ -500,6 +524,8 @@ def train_task(
                 val_metrics=val_result.metrics,
                 test_metrics=test_result.metrics,
                 shap_artifacts=shap_artifacts,
+                xgboost_device_requested=run_xgboost_device_requested,
+                xgboost_device_used=run_xgboost_device_used,
                 warnings=tuple(run_warnings),
             )
 
@@ -523,6 +549,8 @@ def train_task(
                     val_metrics=summary.val_metrics,
                     test_metrics=summary.test_metrics,
                     shap_artifacts=summary.shap_artifacts,
+                    xgboost_device_requested=summary.xgboost_device_requested,
+                    xgboost_device_used=summary.xgboost_device_used,
                     warnings=summary.warnings + tuple(mlflow_warnings),
                 )
 
@@ -567,6 +595,8 @@ def train_task(
         "feature_columns": list(feature_columns),
         "sampling_strategy": best_summary.sampling_strategy,
         "feature_selection_strategy": best_summary.feature_selection_strategy,
+        "xgboost_device_requested": best_summary.xgboost_device_requested,
+        "xgboost_device_used": best_summary.xgboost_device_used,
         "key_evaluation_metrics": {
             "val": best_summary.val_metrics,
             "test": best_summary.test_metrics,
@@ -592,6 +622,8 @@ def train_task(
                 "val_metrics": run.val_metrics,
                 "test_metrics": run.test_metrics,
                 "shap_artifacts": run.shap_artifacts,
+                "xgboost_device_requested": run.xgboost_device_requested,
+                "xgboost_device_used": run.xgboost_device_used,
                 "warnings": list(run.warnings),
             }
             for run in run_summaries
@@ -601,6 +633,8 @@ def train_task(
             "model_family": best_summary.model_family,
             "sampling_strategy": best_summary.sampling_strategy,
             "feature_selection_strategy": best_summary.feature_selection_strategy,
+            "xgboost_device_requested": best_summary.xgboost_device_requested,
+            "xgboost_device_used": best_summary.xgboost_device_used,
             "model_path": str(canonical_model_path),
             "metadata_path": str(canonical_metadata_path),
             "val_metrics": best_summary.val_metrics,
@@ -625,4 +659,5 @@ def train_task(
         model_family=best_summary.model_family,
         sampling_strategy=best_summary.sampling_strategy,
         feature_selection_strategy=best_summary.feature_selection_strategy,
+        xgboost_device_used=best_summary.xgboost_device_used,
     )
