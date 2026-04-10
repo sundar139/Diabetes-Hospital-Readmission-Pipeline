@@ -139,6 +139,62 @@ Generated outputs:
 - `artifacts/feature_metadata.json`
 - `reports/feature_engineering_report.md`
 
+## Model Training and Evaluation
+
+Two prediction tasks are supported:
+
+- binary early-readmission task (`readmitted_30d`)
+- multiclass readmission task (`readmitted` with classes `NO`, `>30`, `<30`)
+
+Model strategy:
+
+- baselines: LogisticRegression and RandomForestClassifier
+- primary model: XGBClassifier
+- optional binary sampling strategies: `none`, `over`, `under`
+- optional feature selection strategy: `none`, `boruta` (gracefully skipped if unavailable)
+
+Train binary models:
+
+```powershell
+uv run python scripts/train_binary.py
+```
+
+Train multiclass models:
+
+```powershell
+uv run python scripts/train_multiclass.py
+```
+
+Run final saved-model evaluation and generate comparison report:
+
+```powershell
+uv run python scripts/run_evaluation.py
+```
+
+Launch MLflow UI locally:
+
+```powershell
+uv run mlflow ui --backend-store-uri ./mlruns
+```
+
+Primary modeling artifacts:
+
+- `artifacts/binary_model.joblib`
+- `artifacts/binary_model_metadata.json`
+- `artifacts/binary_training_results.json`
+- `artifacts/multiclass_model.joblib`
+- `artifacts/multiclass_model_metadata.json`
+- `artifacts/multiclass_training_results.json`
+- `artifacts/evaluations/binary/`
+- `artifacts/evaluations/multiclass/`
+- `reports/model_comparison_report.md`
+
+Interpretability outputs:
+
+- tree-based runs generate SHAP summary JSON and optional plots under run-level evaluation folders
+- single-row contribution utilities are available in `src/models/predict.py`
+- SHAP is optional in the default path and may be unavailable on Python 3.13 environments
+
 ## Cross-Platform Command Reference
 
 Run lint:
@@ -175,6 +231,30 @@ Build clinical feature sets:
 
 ```powershell
 uv run python scripts/build_feature_sets.py
+```
+
+Train binary models:
+
+```powershell
+uv run python scripts/train_binary.py
+```
+
+Train multiclass models:
+
+```powershell
+uv run python scripts/train_multiclass.py
+```
+
+Run final evaluation and model comparison report:
+
+```powershell
+uv run python scripts/run_evaluation.py
+```
+
+Run MLflow UI:
+
+```powershell
+uv run mlflow ui --backend-store-uri ./mlruns
 ```
 
 Print project paths and active config:
