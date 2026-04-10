@@ -19,6 +19,10 @@ htmlcov/
 venv/
 env/
 
+# Editor and workspace files
+.vscode/
+*.code-workspace
+
 # Local environment files
 .env
 .env.*

@@ -1,168 +1,231 @@
 ﻿# Diabetes Hospital Readmission Pipeline
 
-![Python](https://img.shields.io/badge/python-3.11%2B-blue)
-![FastAPI](https://img.shields.io/badge/api-FastAPI-009688)
-![MLflow](https://img.shields.io/badge/mlflow-local%20sqlite-0A7DB8)
-![Docker](https://img.shields.io/badge/docker-supported-2496ED)
-![CI](https://img.shields.io/badge/ci-github%20actions-2088FF)
-![Ruff](https://img.shields.io/badge/lint-ruff-46A2F1)
-![Pytest](https://img.shields.io/badge/tests-pytest-0A9EDC)
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB)
+![Streamlit](https://img.shields.io/badge/Streamlit-Frontend-FF4B4B)
+![FastAPI](https://img.shields.io/badge/FastAPI-API-009688)
+![MLflow](https://img.shields.io/badge/MLflow-Local%20Tracking-0A7DB8)
+![Docker](https://img.shields.io/badge/Docker-Local%20Container-2496ED)
+![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF)
+![Ruff](https://img.shields.io/badge/Lint-Ruff-46A2F1)
+![Pytest](https://img.shields.io/badge/Tests-Pytest-0A9EDC)
 
-Local-first, production-style machine learning pipeline for diabetes hospital readmission prediction, with reproducible training, evaluation, serving, monitoring, and demo workflows.
+## Executive Summary
 
-## Project Summary
+This repository is an end-to-end, local-first machine learning system for diabetes hospital readmission prediction. It covers the full lifecycle: raw-data validation, leakage-aware splitting, feature engineering, model training and evaluation, experiment tracking with MLflow, API serving with FastAPI, artifact-direct frontend delivery with Streamlit, and drift-oriented monitoring.
 
-This repository packages a complete tabular ML lifecycle:
+The project is structured as a realistic portfolio demonstration of applied ML engineering rather than a notebook-only model experiment. It emphasizes reproducibility, operational clarity, deployment pragmatism, and transparent artifacts that reviewers can inspect directly.
 
-- raw data validation and schema checks
-- leakage-aware preprocessing and splitting
-- feature engineering with clinically motivated fields
-- model selection across multiple estimator families
-- local MLflow tracking
-- FastAPI prediction and explanation endpoints
-- Streamlit portfolio frontend with artifact-direct predictions
-- drift-oriented monitoring reports
-- demo artifact generation for portfolio presentation
+## Why This Project Matters
 
-The implementation is designed for technical transparency and reproducibility in a local Windows workflow.
+30-day readmission is operationally and financially important in hospital systems. Predicting near-term readmission risk can inform discharge planning, triage, and follow-up workflows, while multiclass horizon prediction adds broader context (`NO`, `>30`, `<30`).
 
-## Business and Clinical Motivation
+This repository is a technical demonstration of ML systems design in a healthcare-inspired setting. It is not a clinical decision-support system, and it is not validated for patient care.
 
-Hospital readmissions increase cost and care complexity. Early identification of patients at higher risk can support discharge planning and follow-up prioritization.
+**Non-medical-use disclaimer:** all predictions and explanations in this repository are for engineering demonstration only and must not be used for diagnosis, treatment, or clinical decision-making.
 
-This project is an educational and operational demonstration of ML workflow quality, not a clinical decision system. Outputs must not be interpreted as medical advice.
+## Key Capabilities
+
+The pipeline is designed as a coherent system where each stage exists to solve a specific production-style problem:
+
+- **Raw validation and data dictionary generation:** catches schema/value issues early and produces reviewer-facing quality artifacts (`reports/raw_validation_report.md`, `reports/data_dictionary.md`).
+- **Leakage-aware preprocessing and grouped splitting:** creates `readmitted_30d`, normalizes null-like tokens, and performs patient-level grouped splits to reduce repeated-encounter leakage.
+- **Clinically informed feature engineering:** adds engineered risk/utilization features (`recurrency`, `patient_severity`, `medication_change_ratio`, `utilization_intensity`, `complex_discharge_flag`, `age_bucket_risk`) and persists feature metadata.
+- **Binary and multiclass modeling:** evaluates multiple model families and sampling strategies, then promotes best artifacts with metadata and evaluation outputs.
+- **Experiment tracking:** logs local runs via MLflow (SQLite backend + local artifacts store).
+- **API serving:** exposes prediction, batch prediction, and explanation endpoints through FastAPI with strict request/response schemas.
+- **Streamlit frontend:** provides a portfolio-facing interface that loads committed model artifacts directly, including deterministic explanation mode for public deployment safety.
+- **Monitoring and drift reporting:** writes JSONL prediction logs and generates summary/report outputs with PSI-based drift checks.
+- **Demo workflow:** produces reproducible API responses and a concise demo summary for reviewer walkthroughs.
+- **Docker and CI:** includes containerized API launch and automated lint/test/smoke validation paths.
 
 ## Architecture Overview
 
-Core modules:
+### Repository Modules
 
-- `src/config`: typed environment settings and URI/path resolution
-- `src/data`: raw loading, validation, preprocessing, leakage-aware split logic
-- `src/features`: engineered features and metadata
-- `src/models`: estimator factory, training, evaluation, prediction helpers
-- `src/serving`: FastAPI app and request/response schemas
-- `src/llm`: explanation generation with Ollama-first, deterministic fallback
-- `src/monitoring`: prediction logging and drift/monitoring reports
-- `src/frontend`: Streamlit UI modules for prediction, analytics, monitoring, and overview
+- `src/config`: environment configuration, path normalization, and local URI handling.
+- `src/data`: raw loading, validation, preprocessing, and grouped split utilities.
+- `src/features`: feature engineering logic and feature metadata support.
+- `src/models`: pipeline factory, training orchestration, prediction, and evaluation routines.
+- `src/serving`: FastAPI app and pydantic schemas for serving contracts.
+- `src/llm`: explanation layer with Ollama-first optional mode and deterministic fallback.
+- `src/monitoring`: prediction log construction, drift calculations, and monitoring narrative/report generation.
+- `src/frontend`: Streamlit pages and lightweight artifact-loading/prediction helpers.
+- `scripts`: operator entry points for validation, training, evaluation, serving, monitoring, and demos.
+- `tests`: unit/integration/smoke coverage for core data, modeling, API, frontend, and runtime guardrails.
+- `docs`: local workflow guide, results summary, troubleshooting, and release checklist.
 
-Operational entry points:
+### System Flow
 
-- `scripts`: training, evaluation, API, MLflow, monitoring, demo workflows
-- `tests`: unit and smoke checks for core behaviors
+```mermaid
+flowchart LR
+    A[data/raw/diabetic_data.csv] --> B[Raw Validation + Preprocess]
+    B --> C[Grouped Patient Split]
+    C --> D[Feature Engineering]
+    D --> E[Model Training and Selection]
+    E --> F[Artifacts + Metadata]
+    F --> G[FastAPI Serving]
+    F --> H[Streamlit Frontend]
+    F --> I[Monitoring + Drift Reports]
+    E --> J[MLflow Local Tracking]
+```
 
-## Dataset and Task Framing
+## Dataset
 
-Dataset source:
+- **Expected local file:** `data/raw/diabetic_data.csv`
+- **Dataset lineage:** Diabetes 130-US hospitals style dataset usage (as documented in project materials).
+- **Primary target:** `readmitted`
+- **Binary target:** `readmitted_30d` (positive label `<30`)
+- **Multiclass labels:** `NO`, `>30`, `<30`
 
-- UCI/Kaggle Diabetes 130-US hospitals data
+Caveat: this is a single-dataset, local workflow intended for engineering demonstration. Generalization and clinical validity are out of scope.
 
-Expected local dataset location:
+## Project Workflow
 
-- `data/raw/diabetic_data.csv`
+End-to-end execution order:
 
-Prediction tasks:
+1. Raw validation and schema checks.
+2. Preprocessing with null-token normalization and binary target derivation.
+3. Leakage-safe grouped split by patient.
+4. Feature engineering and metadata export.
+5. Binary and multiclass model training.
+6. Evaluation and model comparison report generation.
+7. Local MLflow run tracking and inspection.
+8. FastAPI serving for predict/predict-batch/explain.
+9. Streamlit artifact-direct frontend execution.
+10. Monitoring summary/report generation with drift checks.
+11. Demo/showcase artifact generation for portfolio walkthroughs.
 
-- Binary task: `readmitted_30d` (positive class `<30`)
-- Multiclass task: `readmitted` with labels `NO`, `>30`, `<30`
+## Commands and Usage
 
-## Preprocessing and Leakage Prevention
+### 1) Environment setup
 
-The pipeline enforces a patient-level grouping strategy during splitting to reduce leakage from repeated encounters. Preprocessing and split manifests are persisted so data lineage can be audited.
+```powershell
+pip install uv
+uv sync --group dev --extra eda
+Copy-Item .env.example .env
+uv run python scripts/healthcheck.py
+```
 
-Primary commands:
+### 2) Raw validation
 
 ```powershell
 uv run python scripts/run_raw_validation.py
+```
+
+### 3) Processed data build
+
+```powershell
 uv run python scripts/build_processed_data.py
 ```
 
-Primary outputs:
-
-- `reports/raw_validation_report.md`
-- `reports/raw_validation_summary.json`
-- `reports/data_dictionary.md`
-- `reports/processed_data_report.md`
-- `artifacts/raw_validation_summary.json`
-- `artifacts/split_manifest.json`
-
-## Feature Engineering
-
-Feature generation includes baseline tabular transforms plus project-specific risk/usage signals such as recurrency, patient severity, medication change ratio, utilization intensity, and discharge complexity features.
-
-Command:
+### 4) Feature build
 
 ```powershell
 uv run python scripts/build_feature_sets.py
 ```
 
-Outputs:
-
-- `data/processed/train_features.parquet`
-- `data/processed/val_features.parquet`
-- `data/processed/test_features.parquet`
-- `artifacts/feature_metadata.json`
-- `reports/feature_engineering_report.md`
-
-## Modeling Summary
-
-Train and evaluate:
+### 5) Binary training
 
 ```powershell
 uv run python scripts/train_binary.py
+```
+
+### 6) Multiclass training
+
+```powershell
 uv run python scripts/train_multiclass.py
+```
+
+### 7) Evaluation
+
+```powershell
 uv run python scripts/run_evaluation.py
 ```
 
-Observed best models from latest comparison report (`reports/model_comparison_report.md`):
-
-- Binary winner: XGBoost (sampling=none), test F1 = 0.3661
-- Multiclass winner: XGBoost, test macro F1 = 0.5250
-
-Key model artifacts:
-
-- `artifacts/binary_model.joblib`
-- `artifacts/binary_model_metadata.json`
-- `artifacts/binary_training_results.json`
-- `artifacts/multiclass_model.joblib`
-- `artifacts/multiclass_model_metadata.json`
-- `artifacts/multiclass_training_results.json`
-
-## XGBoost Runtime Notes
-
-Config:
-
-- `PIPELINE_XGBOOST_DEVICE` in `auto`, `cuda`, `cpu`
-
-Runtime behavior:
-
-- training can use CUDA when available and requested
-- inference is pinned to CPU for sklearn/imblearn pipeline outputs to keep behavior deterministic with CPU-resident transformed matrices
-- runtime fields are persisted in metadata/results and surfaced in evaluation/monitoring outputs
-
-## MLflow Local Workflow
-
-Start local MLflow server:
+### 8) MLflow server
 
 ```powershell
 uv run python scripts/run_mlflow_server.py
 ```
 
-Default local settings:
-
-- tracking URI: `http://127.0.0.1:5000`
-- backend store: `sqlite:///mlflow.db`
-- artifacts destination: `./mlartifacts` (normalized to file URI)
-- Windows local launch mode: single worker for startup stability
-
-Reset local MLflow tracking state when needed:
+### 9) FastAPI app
 
 ```powershell
-uv run python scripts/reset_mlflow_dev_store.py --yes
+uv run python scripts/run_api.py
 ```
 
-This removes `mlflow.db` and `mlartifacts` only.
+### 10) Monitoring report
 
-## API Usage
+```powershell
+uv run python scripts/run_monitoring_report.py
+```
+
+### 11) Demo workflow
+
+```powershell
+uv run python scripts/demo_smoke_run.py
+```
+
+### 12) Streamlit frontend
+
+```powershell
+uv run streamlit run streamlit_app.py
+```
+
+## Results and Evaluation
+
+Latest committed comparison results (from `reports/model_comparison_report.md`):
+
+- **Binary best model:** XGBoost (`sampling=none`)
+- **Binary primary metric (F1):** `0.3661`
+- **Multiclass best model:** XGBoost
+- **Multiclass primary metric (Macro F1):** `0.5250`
+
+Additional committed multiclass test metrics (from `artifacts/multiclass_model_metadata.json`):
+
+- Accuracy: `0.7324`
+- Class-level behavior:
+  - `NO`: strong F1/recall (`f1=0.8434`, `recall=0.9117`)
+  - `>30`: moderate balance (`f1=0.6542`)
+  - `<30`: low recall (`recall=0.0419`) despite higher precision (`0.5152`)
+
+Interpretation and tradeoffs:
+
+- The binary test confusion matrix indicates a high-recall/low-precision tradeoff on the positive class under class imbalance.
+- The multiclass model performs well on dominant classes while under-retrieving the rare `<30` class, a common operational tradeoff in skewed hospital outcomes.
+- XGBoost won because it delivered the strongest primary metrics across both tasks under the current feature set and split strategy.
+
+## Artifact and Output Map
+
+- `artifacts/`
+  - trained models and metadata
+  - sample payloads
+  - evaluation images/SHAP summaries
+  - monitoring logs (`artifacts/monitoring/prediction_log.jsonl`)
+  - demo response files (`artifacts/demo/*`)
+- `reports/`
+  - validation, preprocessing, feature, model comparison, monitoring, and demo summaries
+- `docs/`
+  - workflow, troubleshooting, results summary, release checklist
+- `data/processed/`
+  - split and feature parquet outputs used by training/evaluation
+
+## MLflow and Observability
+
+MLflow is configured for local development:
+
+- **Tracking server:** `http://127.0.0.1:5000`
+- **Backend store:** `sqlite:///mlflow.db`
+- **Artifact store:** `./mlartifacts` (resolved to local file URI)
+- **Launch command:** `uv run python scripts/run_mlflow_server.py`
+
+What reviewers should inspect:
+
+- experiment runs and parameter/metric lineage
+- binary vs multiclass run comparisons
+- artifact links and model-selection rationale consistency with `reports/model_comparison_report.md`
+
+## API
 
 Start API:
 
@@ -170,214 +233,149 @@ Start API:
 uv run python scripts/run_api.py
 ```
 
-Docs URL:
-
-- `http://127.0.0.1:8000/docs`
+Swagger docs: `http://127.0.0.1:8000/docs`
 
 Endpoints:
 
-- `GET /health`
-- `POST /predict`
-- `POST /predict-batch`
-- `POST /explain`
+- `GET /health`: readiness and artifact/status context
+- `POST /predict`: single-row binary + multiclass prediction
+- `POST /predict-batch`: batch scoring
+- `POST /explain`: prediction + explanation payload
 
-Sample payload files:
+Explanation behavior:
 
-- `artifacts/sample_payload.json`
-- `artifacts/sample_batch_payload.json`
-- `artifacts/sample_explain_payload.json`
+- Optional Ollama path when enabled/available
+- Deterministic fallback path for robust local/public demo behavior
 
-Run request examples and persist real responses:
+## Streamlit Frontend
 
-```powershell
-uv run python scripts/demo_prediction_examples.py --mode all
-```
+Frontend entrypoint: `streamlit_app.py`
 
-## Streamlit Frontend (Artifact-Direct)
+What it provides:
 
-The Streamlit app is designed for public portfolio demos and loads saved model artifacts directly.
+- artifact-direct binary and multiclass scoring
+- deterministic explanation rendering suitable for public demo hosting
+- analytics and monitoring report views from committed outputs
 
-Key behavior:
+Deployment posture:
 
-- no dependency on a running FastAPI server for predictions
-- no dependency on local Ollama for explanation output
-- deterministic explanation mode in public app flow
-- uses saved files from `artifacts/` and report summaries from `reports/`
+- lightweight `requirements.txt` is used for frontend runtime/CI
+- frontend path does not require running FastAPI or local Ollama
+- full development stack remains available through `pyproject.toml` + `uv sync`
 
-Run locally:
+## Monitoring
 
-```powershell
-uv run streamlit run streamlit_app.py
-```
-
-Expected required artifacts:
-
-- `artifacts/binary_model.joblib`
-- `artifacts/multiclass_model.joblib`
-- `artifacts/binary_model_metadata.json`
-- `artifacts/multiclass_model_metadata.json`
-
-Optional but recommended frontend inputs:
-
-- `artifacts/sample_payload.json`
-- `artifacts/sample_explain_payload.json`
-- `reports/model_comparison_report.md`
-- `reports/monitoring_summary.json`
-- `reports/monitoring_report.md`
-
-Dummy example behavior:
-
-- **Load baseline example**: seeds form values from `artifacts/sample_payload.json`
-- **Load dummy example**: seeds form values from `artifacts/sample_explain_payload.json` (or batch fallback)
-
-## Streamlit Community Cloud Deployment
-
-Deployment target:
-
-- app entrypoint: `streamlit_app.py`
-
-Repository deployment notes:
-
-- this repository uses a lightweight root `requirements.txt` for frontend deployment/runtime only
-- lightweight frontend runtime dependencies include Streamlit, pandas, numpy, scikit-learn, XGBoost, and joblib
-- full local development and training dependencies (including SHAP, MLflow, FastAPI, Boruta) remain in `pyproject.toml`
-- package root imports are kept side-effect free so `streamlit_app.py` can import in lightweight environments without loading backend settings
-- install the full stack locally with `uv sync --group dev --extra eda`
-- `.streamlit/config.toml` provides theme and server configuration
-- `runtime.txt` pins Python runtime to `3.11`
-
-CI notes:
-
-- `.github/workflows/ci.yml` runs a lightweight frontend job on push/pull request using `requirements.txt`
-- full-stack CI checks are preserved in the same workflow and run via manual `workflow_dispatch`
-
-Community Cloud setup steps:
-
-1. Push this repository to GitHub with required model artifacts included.
-2. In Streamlit Community Cloud, create a new app from the GitHub repo.
-3. Set `streamlit_app.py` as the main file path.
-4. Deploy; no secrets are required for core public prediction flow.
-
-Local-only advanced workflows remain available:
-
-- FastAPI serving and request demos
-- Ollama-preferred explanation/narrative generation
-- MLflow local experiment tracking
-
-## Monitoring Usage
-
-Generate monitoring reports:
+Monitoring command:
 
 ```powershell
 uv run python scripts/run_monitoring_report.py
 ```
 
-Outputs:
+Generated outputs:
 
 - `reports/monitoring_summary.json`
 - `reports/monitoring_report.md`
 - `artifacts/monitoring/prediction_log.jsonl`
 
-Latest report currently shows stable probability drift with PSI 0.00243.
+Current committed snapshot highlights:
 
-## Local Demo Flow
+- Binary probability drift status: `stable`
+- Binary probability PSI: `0.002432362862340654`
+- Latest warning count: `0`
 
-Terminal 1:
+## Deployment
 
-```powershell
-uv run python scripts/run_mlflow_server.py
-```
-
-Terminal 2:
-
-```powershell
-uv run python scripts/run_api.py
-```
-
-Terminal 3:
-
-```powershell
-uv run python scripts/demo_smoke_run.py
-```
-
-If models are not yet trained in this workspace session:
-
-```powershell
-uv run python scripts/train_binary.py
-uv run python scripts/train_multiclass.py
-uv run python scripts/run_evaluation.py
-```
-
-Generated demo outputs:
-
-- `artifacts/demo/sample_health_response.json`
-- `artifacts/demo/sample_prediction_response.json`
-- `artifacts/demo/sample_batch_response.json`
-- `artifacts/demo/sample_explanation_response.json`
-- `artifacts/demo/demo_requests_manifest.json`
-- `artifacts/demo/demo_manifest.json`
-- `reports/demo_summary.md`
-
-Suggested demo narrative:
-
-- show health and docs endpoint
-- show single and batch prediction responses
-- show explanation output and fallback behavior note
-- show monitoring report drift/runtime section
-- close with `reports/demo_summary.md`
-
-## Docker Usage
-
-Build:
+### Docker (local API)
 
 ```powershell
 docker build -t diabetes-readmission-api .
-```
-
-Run:
-
-```powershell
 docker run --rm -p 8000:8000 diabetes-readmission-api
 ```
 
-## CI Summary
+### Streamlit Community Cloud
 
-Workflow file:
+- Set `streamlit_app.py` as main file
+- Use root `requirements.txt` for lightweight frontend install path
+- Keep required model artifacts committed for artifact-direct scoring
+- No secrets are required for the deterministic public demo flow
 
-- `.github/workflows/ci.yml`
+## Testing and Quality
 
-Current CI checks:
+Core quality stack:
 
-- `uv run ruff check .`
-- `uv run pytest`
-- `uv run python scripts/healthcheck.py`
-- FastAPI import smoke check
+- Ruff linting (`uv run ruff check .`)
+- Pytest test suite (`uv run pytest`)
+- CI workflow in `.github/workflows/ci.yml`
 
-## Supporting Docs
+Testing posture:
 
-- `docs/local_workflow.md`
-- `docs/results_summary.md`
-- `docs/troubleshooting.md`
-- `docs/release_checklist.md`
+- Unit coverage on data transforms, splitting, training/evaluation helpers
+- API schema/endpoint checks
+- Frontend lightweight import and behavior tests
+- Runtime guardrail checks (including XGBoost device behavior)
+
+## Technical Challenges Solved
+
+### 1) Leakage prevention with repeated patients
+
+Problem: encounter-level random split risks patient overlap leakage.
+
+Solution: grouped split by `patient_nbr` with manifest checks and leakage validation artifacts.
+
+### 2) Raw missing-token cleanup before modeling
+
+Problem: healthcare tabular data contains inconsistent null-like tokens.
+
+Solution: explicit normalization and validation pipeline (`replace_null_like_tokens`) before feature/model stages.
+
+### 3) Windows-safe local MLflow pathing and startup behavior
+
+Problem: local URI/path resolution and multi-worker startup can be brittle on Windows.
+
+Solution: typed settings with path/URI normalization and Windows single-worker MLflow guardrails in runtime scripts.
+
+### 4) Frontend lightweight deployment path
+
+Problem: frontend deployment should not pull full training/serving dependency stack.
+
+Solution: lightweight requirements + import-safe package initialization + dedicated frontend CI smoke/tests.
+
+### 5) XGBoost GPU training vs safe CPU inference
+
+Problem: GPU-trained pipelines can still require CPU-resident inference for stability with transformed feature matrices.
+
+Solution: runtime guardrails pin inference to CPU, persist runtime metadata, and surface fallback/device fields in artifacts and monitoring reports.
+
+### 6) Deterministic explanation fallback strategy
+
+Problem: explanation generation should remain reliable when Ollama is unavailable.
+
+Solution: deterministic fallback explanation path in API and frontend workflows, with optional Ollama mode when available.
 
 ## Limitations
 
-- single public dataset; no external validation cohort
-- local batch-style monitoring, not streaming production telemetry
-- no delayed-label backfill loop for live performance tracking
-- public deployment target is Streamlit Community Cloud demo hosting (not production clinical deployment)
+- Not for clinical use; no clinical validation or deployment certification.
+- Local-first architecture; no managed cloud serving stack in this repository.
+- Explanation output is model-signal guidance, not causal inference.
+- Monitoring currently emphasizes drift and operational summaries; when labels are unavailable, direct outcome scoring is limited.
+- GPU/CPU runtime tradeoffs can impact throughput expectations.
+- Public Streamlit flow uses artifact-direct inference instead of the full backend stack.
 
 ## Future Improvements
 
-- scheduled monitoring trend snapshots
-- stronger data contracts for serving payload quality checks
-- expanded uncertainty and calibration analysis
-- broader CI matrix across OS/Python versions
+- Probability calibration improvements and threshold policy tooling.
+- Richer monitoring with trend history and alert thresholds.
+- Stronger explainability package beyond current fallback + SHAP summaries.
+- Managed deployment options for API + tracking + monitoring services.
+- Expanded governance artifacts (model-card style documentation, decision logs, and risk controls).
 
 ## Resume-Ready Highlights
 
-- built an end-to-end local healthcare ML pipeline with reproducible artifacts and reports
-- implemented leakage-aware splitting, engineered features, and comparative model selection
-- delivered FastAPI serving with batch and explanation workflows and deterministic fallback behavior
-- hardened local MLflow and XGBoost runtime behavior for Windows stability
-- added drift reporting, demo artifact generation, Docker packaging, and CI checks
+- Built a full local MLOps pipeline for healthcare-style tabular prediction from raw ingestion through monitoring.
+- Implemented leakage-aware grouped splitting and clinically informed feature engineering with persisted lineage artifacts.
+- Delivered production-style interfaces via FastAPI and Streamlit, including deterministic explanation fallback behavior.
+- Operationalized local MLflow tracking, Dockerized API serving, and CI-backed lint/test/smoke validation.
+
+## Conclusion
+
+This project demonstrates practical ML systems engineering with transparent artifacts, reproducible workflows, and realistic operational guardrails. It is intentionally local-first, technically honest, and designed for reviewers to validate every stage from data preparation to deployment-facing demo surfaces.
