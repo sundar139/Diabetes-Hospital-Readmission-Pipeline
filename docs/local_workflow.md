@@ -131,7 +131,7 @@ uv run pytest
 Run the artifact-direct frontend:
 
 ```powershell
-uv run streamlit run streamlit_app.py
+uv run streamlit run app/streamlit_app.py
 ```
 
 Notes:
@@ -139,6 +139,8 @@ Notes:
 - the app loads model artifacts directly from `artifacts/`
 - FastAPI and Ollama are not required for this frontend flow
 - use **Load baseline example** and **Load dummy example** in the app for quick reviewer-friendly demos
+- `app/requirements.txt` is the minimal dependency set intended for Streamlit Community Cloud deployment
+- root `uv.lock` remains part of the full local development workflow and is not required for app deployment
 
 Optional logic check without launching browser:
 

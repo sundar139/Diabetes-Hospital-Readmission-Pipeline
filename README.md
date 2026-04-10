@@ -195,7 +195,7 @@ uv run python scripts/demo_prediction_examples.py --mode all
 
 ## Streamlit Frontend (Artifact-Direct)
 
-The Streamlit app is designed for public portfolio demos and loads saved model artifacts directly.
+The deployment-focused Streamlit app lives in `app/` and loads saved model artifacts directly.
 
 Key behavior:
 
@@ -207,7 +207,7 @@ Key behavior:
 Run locally:
 
 ```powershell
-uv run streamlit run streamlit_app.py
+uv run streamlit run app/streamlit_app.py
 ```
 
 Expected required artifacts:
@@ -234,19 +234,22 @@ Dummy example behavior:
 
 Deployment target:
 
-- app entrypoint: `streamlit_app.py`
+- app entrypoint: `app/streamlit_app.py`
+- app dependency file: `app/requirements.txt`
+- app config file: `app/.streamlit/config.toml`
 
 Repository deployment notes:
 
-- this repository includes `requirements.txt` with `.` so Community Cloud installs dependencies from `pyproject.toml`
-- `.streamlit/config.toml` provides theme and server configuration
+- app deployment is isolated from root local-dev lock/dependency files by using the `app/` directory
+- root `pyproject.toml` and `uv.lock` remain local development workflow files
+- `app/requirements.txt` intentionally excludes heavy local-only extras such as SHAP, numba/llvmlite, MLflow, and Ollama dependencies
 - `runtime.txt` pins Python runtime to `3.11`
 
 Community Cloud setup steps:
 
 1. Push this repository to GitHub with required model artifacts included.
 2. In Streamlit Community Cloud, create a new app from the GitHub repo.
-3. Set `streamlit_app.py` as the main file path.
+3. Set `app/streamlit_app.py` as the main file path.
 4. Deploy; no secrets are required for core public prediction flow.
 
 Local-only advanced workflows remain available:
