@@ -6,10 +6,31 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from src.config.settings import get_settings
-from src.models.predict import load_model, load_model_metadata
+import joblib
 
 JsonDict = dict[str, Any]
+
+
+def _default_project_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def _load_model(model_path: Path) -> Any:
+    if not model_path.exists():
+        raise FileNotFoundError(f"Model artifact not found: {model_path}")
+    return joblib.load(model_path)
+
+
+def _load_model_metadata(metadata_path: Path) -> JsonDict:
+    if not metadata_path.exists():
+        raise FileNotFoundError(f"Model metadata not found: {metadata_path}")
+
+    payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(
+            f"Expected object JSON in {metadata_path}, got {type(payload).__name__}."
+        )
+    return payload
 
 
 @dataclass(frozen=True)
@@ -79,8 +100,7 @@ class FrontendContext:
 
 
 def resolve_frontend_paths(project_root: Path | None = None) -> FrontendPaths:
-    settings = get_settings()
-    resolved_root = (project_root or settings.project_root).resolve()
+    resolved_root = (project_root or _default_project_root()).resolve()
 
     artifacts_dir = (resolved_root / "artifacts").resolve()
     reports_dir = (resolved_root / "reports").resolve()
@@ -186,10 +206,10 @@ def load_prediction_artifacts(paths: FrontendPaths | None = None) -> PredictionA
 
     return PredictionArtifacts(
         paths=resolved_paths,
-        binary_model=load_model(resolved_paths.binary_model_path),
-        multiclass_model=load_model(resolved_paths.multiclass_model_path),
-        binary_metadata=load_model_metadata(resolved_paths.binary_metadata_path),
-        multiclass_metadata=load_model_metadata(resolved_paths.multiclass_metadata_path),
+        binary_model=_load_model(resolved_paths.binary_model_path),
+        multiclass_model=_load_model(resolved_paths.multiclass_model_path),
+        binary_metadata=_load_model_metadata(resolved_paths.binary_metadata_path),
+        multiclass_metadata=_load_model_metadata(resolved_paths.multiclass_metadata_path),
     )
 
 
