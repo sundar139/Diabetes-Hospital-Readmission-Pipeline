@@ -107,6 +107,38 @@ Generated outputs:
 - `artifacts/split_manifest.json`
 - `reports/processed_data_report.md`
 
+## Clinical Feature Engineering
+
+Run feature set construction:
+
+```powershell
+uv run python scripts/build_feature_sets.py
+```
+
+Engineered features:
+
+- `recurrency`: split-local repeated patient encounter count proxy (`encounter_count_for_patient - 1`)
+- `patient_severity`: weighted severity index from stay length, diagnoses, and prior utilization
+- `medication_change_ratio`: share of diabetes medication statuses in `{Up, Down}` per encounter
+- `utilization_intensity`: `number_inpatient + number_outpatient + number_emergency`
+- `complex_discharge_flag`: indicator for non-home-like discharge disposition
+- `age_bucket_risk`: ordinal risk derived from age bucket lower bound
+
+Why these features matter clinically:
+
+- they capture prior utilization burden and return-visit tendencies
+- they summarize acuity and care complexity into model-ready signals
+- they represent treatment adjustment intensity and transition-of-care difficulty
+- they inject age-associated baseline vulnerability in transparent form
+
+Generated outputs:
+
+- `data/processed/train_features.parquet`
+- `data/processed/val_features.parquet`
+- `data/processed/test_features.parquet`
+- `artifacts/feature_metadata.json`
+- `reports/feature_engineering_report.md`
+
 ## Cross-Platform Command Reference
 
 Run lint:
@@ -137,6 +169,12 @@ Build processed datasets:
 
 ```powershell
 uv run python scripts/build_processed_data.py
+```
+
+Build clinical feature sets:
+
+```powershell
+uv run python scripts/build_feature_sets.py
 ```
 
 Print project paths and active config:

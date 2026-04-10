@@ -1,1 +1,27 @@
-"""Feature engineering and transformation modules."""
+from . import build_features as _build_features
+
+ENGINEERED_FEATURE_NAMES = _build_features.ENGINEERED_FEATURE_NAMES
+FeatureBookkeeping = _build_features.FeatureBookkeeping
+FeatureEngineeringResult = _build_features.FeatureEngineeringResult
+build_age_bucket_risk_feature = _build_features.build_age_bucket_risk_feature
+build_complex_discharge_flag_feature = _build_features.build_complex_discharge_flag_feature
+build_medication_change_ratio_feature = _build_features.build_medication_change_ratio_feature
+build_patient_severity_feature = _build_features.build_patient_severity_feature
+build_recurrency_feature = _build_features.build_recurrency_feature
+build_utilization_intensity_feature = _build_features.build_utilization_intensity_feature
+detect_medication_status_columns = _build_features.detect_medication_status_columns
+engineer_clinical_features = _build_features.engineer_clinical_features
+
+__all__: list[str] = []
+__all__.append("ENGINEERED_FEATURE_NAMES")
+__all__.append("FeatureBookkeeping")
+__all__.append("FeatureEngineeringResult")
+__all__.append("build_age_bucket_risk_feature")
+__all__.append("build_complex_discharge_flag_feature")
+__all__.append("build_medication_change_ratio_feature")
+__all__.append("build_patient_severity_feature")
+__all__.append("build_recurrency_feature")
+__all__.append("build_utilization_intensity_feature")
+__all__.append("detect_medication_status_columns")
+__all__.append("engineer_clinical_features")
+
