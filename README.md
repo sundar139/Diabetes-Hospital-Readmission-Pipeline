@@ -245,9 +245,17 @@ Endpoints:
 - `POST /predict-batch`
 - `POST /explain`
 
-Example payload:
+Example payload files:
 
-- `artifacts/sample_payload.json`
+- `artifacts/sample_payload.json` for `POST /predict`
+- `artifacts/sample_batch_payload.json` for `POST /predict-batch`
+- `artifacts/sample_explain_payload.json` for `POST /explain`
+
+Run local demo API requests and persist real response examples:
+
+```powershell
+uv run python scripts/demo_prediction_examples.py --mode all
+```
 
 ## Ollama Explanation Workflow
 
@@ -356,33 +364,57 @@ CI runs on push and pull request and executes:
 - `uv run python scripts/healthcheck.py`
 - FastAPI import smoke check
 
-## Clean Local Demo Flow
+## Local Demo Flow
 
-Terminal 1:
+Terminal 1 (MLflow server):
 
 ```powershell
 uv run python scripts/run_mlflow_server.py
 ```
 
-Terminal 2:
+Terminal 2 (API server):
 
 ```powershell
 uv run python scripts/run_api.py
 ```
 
-Terminal 3:
+Terminal 3 (demo requests and showcase artifacts):
+
+```powershell
+uv run python scripts/demo_smoke_run.py
+```
+
+If models were not retrained in the current workspace session, run once before demo smoke run:
 
 ```powershell
 uv run python scripts/train_binary.py
 uv run python scripts/train_multiclass.py
 uv run python scripts/run_evaluation.py
-uv run python scripts/run_monitoring_report.py
 ```
+
+Generated demo artifacts:
+
+- `artifacts/demo/sample_health_response.json`
+- `artifacts/demo/sample_prediction_response.json`
+- `artifacts/demo/sample_batch_response.json`
+- `artifacts/demo/sample_explanation_response.json`
+- `artifacts/demo/demo_manifest.json`
+- `reports/monitoring_summary.json`
+- `reports/monitoring_report.md`
+- `reports/demo_summary.md`
 
 Local URLs:
 
 - MLflow UI: `http://127.0.0.1:5000`
 - FastAPI Docs: `http://127.0.0.1:8000/docs`
+
+Demo checklist:
+
+- Show `/health` response from `artifacts/demo/sample_health_response.json`
+- Show `/predict` and `/predict-batch` response examples from `artifacts/demo/`
+- Show `/explain` response and explanation mode from `artifacts/demo/sample_explanation_response.json`
+- Show drift and runtime notes in `reports/monitoring_report.md`
+- Show one-page recap in `reports/demo_summary.md`
 
 ## Limitations
 

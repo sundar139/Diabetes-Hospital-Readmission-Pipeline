@@ -39,8 +39,8 @@
 
 ## XGBoost Runtime Notes
 
-- Binary runtime: requested=cuda, training=cuda, inference=cpu, fallback_path=True.
-- Multiclass runtime: requested=cuda, training=cuda, inference=cpu, fallback_path=True.
+- Binary runtime: requested=cpu, training=cuda, inference=cpu, fallback_path=False.
+- Multiclass runtime: requested=cpu, training=cuda, inference=cpu, fallback_path=False.
 
 ## Recommended Production Candidate
 

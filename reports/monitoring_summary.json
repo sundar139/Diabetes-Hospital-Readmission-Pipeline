@@ -98,24 +98,24 @@
       "status": "stable"
     }
   },
-  "generated_at_utc": "2026-04-10T04:12:48.206909+00:00",
+  "generated_at_utc": "2026-04-10T05:32:40.400751+00:00",
   "inference_runtime": {
     "binary_model": {
-      "inference_used_fallback_path": true,
-      "metadata_fallback_path": false,
-      "metadata_inference_device": "cuda",
+      "inference_used_fallback_path": false,
+      "metadata_fallback_path": true,
+      "metadata_inference_device": "cpu",
       "record_runtime_device": "cpu",
-      "record_runtime_fallback_path": true,
+      "record_runtime_fallback_path": false,
       "xgboost_device_requested": "auto",
       "xgboost_device_used_for_inference": "cpu",
       "xgboost_device_used_for_training": "cuda"
     },
     "multiclass_model": {
-      "inference_used_fallback_path": true,
-      "metadata_fallback_path": false,
-      "metadata_inference_device": "cuda",
+      "inference_used_fallback_path": false,
+      "metadata_fallback_path": true,
+      "metadata_inference_device": "cpu",
       "record_runtime_device": "cpu",
-      "record_runtime_fallback_path": true,
+      "record_runtime_fallback_path": false,
       "xgboost_device_requested": "auto",
       "xgboost_device_used_for_inference": "cpu",
       "xgboost_device_used_for_training": "cuda"
@@ -132,24 +132,24 @@
       "feature_count": 53,
       "metadata_path": "C:\\Users\\rohit\\Documents\\Personal Projects\\Diabetes Hospital Readmission Pipeline\\artifacts\\binary_model_metadata.json",
       "model_family": "xgboost",
-      "training_timestamp_utc": "2026-04-10T03:31:39.462434+00:00",
+      "training_timestamp_utc": "2026-04-10T04:41:55.264210+00:00",
       "xgboost_device_requested": "auto",
-      "xgboost_device_used_for_inference": "cuda",
+      "xgboost_device_used_for_inference": "cpu",
       "xgboost_device_used_for_training": "cuda",
-      "xgboost_inference_used_fallback_path": null
+      "xgboost_inference_used_fallback_path": true
     },
     "multiclass_model": {
       "feature_count": 53,
       "metadata_path": "C:\\Users\\rohit\\Documents\\Personal Projects\\Diabetes Hospital Readmission Pipeline\\artifacts\\multiclass_model_metadata.json",
       "model_family": "xgboost",
-      "training_timestamp_utc": "2026-04-10T03:50:12.158080+00:00",
+      "training_timestamp_utc": "2026-04-10T05:16:32.406830+00:00",
       "xgboost_device_requested": "auto",
-      "xgboost_device_used_for_inference": "cuda",
+      "xgboost_device_used_for_inference": "cpu",
       "xgboost_device_used_for_training": "cuda",
-      "xgboost_inference_used_fallback_path": null
+      "xgboost_inference_used_fallback_path": true
     }
   },
-  "monitoring_narrative": "Monitoring summary generated for local model operations. Compared 5000 prediction records against 5000 reference rows. Binary-probability drift status is 'stable'. Inference fallback models: 2. Warnings reported: 2.",
+  "monitoring_narrative": "Monitoring summary generated for local model operations. Compared 5000 prediction records against 5000 reference rows. Binary-probability drift status is 'stable'. Inference fallback models: 0. Warnings reported: 0.",
   "monitoring_narrative_mode": "fallback",
   "prediction_distribution": {
     "binary_prediction_counts": {
@@ -178,8 +178,5 @@
     "prediction_records": 5000,
     "reference_rows": 5000
   },
-  "warnings": [
-    "binary_model is using CPU-compatible inference path for device stability.",
-    "multiclass_model is using CPU-compatible inference path for device stability."
-  ]
+  "warnings": []
 }

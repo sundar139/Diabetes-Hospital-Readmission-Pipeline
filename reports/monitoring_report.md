@@ -1,13 +1,13 @@
 # Monitoring Report
 
-Generated at (UTC): 2026-04-10T04:12:48.206909+00:00
+Generated at (UTC): 2026-04-10T05:32:40.400751+00:00
 
 ## Model Version
 
 - Binary model family: xgboost
-- Binary training timestamp: 2026-04-10T03:31:39.462434+00:00
+- Binary training timestamp: 2026-04-10T04:41:55.264210+00:00
 - Multiclass model family: xgboost
-- Multiclass training timestamp: 2026-04-10T03:50:12.158080+00:00
+- Multiclass training timestamp: 2026-04-10T05:16:32.406830+00:00
 
 ## Sample Sizes
 
@@ -34,8 +34,8 @@ Generated at (UTC): 2026-04-10T04:12:48.206909+00:00
 
 ## Inference Runtime
 
-- binary_model: requested=auto, training=cuda, inference=cpu, fallback_path=True
-- multiclass_model: requested=auto, training=cuda, inference=cpu, fallback_path=True
+- binary_model: requested=auto, training=cuda, inference=cpu, fallback_path=False
+- multiclass_model: requested=auto, training=cuda, inference=cpu, fallback_path=False
 
 ### Feature Drift
 
@@ -58,11 +58,10 @@ Generated at (UTC): 2026-04-10T04:12:48.206909+00:00
 
 ## Warnings
 
-- binary_model is using CPU-compatible inference path for device stability.
-- multiclass_model is using CPU-compatible inference path for device stability.
+- No warnings.
 
 ## Optional Narrative Summary
 
 Mode: fallback
 
-Monitoring summary generated for local model operations. Compared 5000 prediction records against 5000 reference rows. Binary-probability drift status is 'stable'. Inference fallback models: 2. Warnings reported: 2.
+Monitoring summary generated for local model operations. Compared 5000 prediction records against 5000 reference rows. Binary-probability drift status is 'stable'. Inference fallback models: 0. Warnings reported: 0.

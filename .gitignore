@@ -35,6 +35,8 @@ data/processed/**
 artifacts/**
 !artifacts/.gitkeep
 !artifacts/sample_payload.json
+!artifacts/sample_batch_payload.json
+!artifacts/sample_explain_payload.json
 reports/figures/**
 !reports/figures/.gitkeep
 mlartifacts/
