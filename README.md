@@ -15,6 +15,13 @@ This repository is an end-to-end, local-first machine learning system for diabet
 
 The project is structured as a realistic portfolio demonstration of applied ML engineering rather than a notebook-only model experiment. It emphasizes reproducibility, operational clarity, deployment pragmatism, and transparent artifacts that reviewers can inspect directly.
 
+## Recruiter Snapshot
+
+- Dataset size: **101,766 rows** (patient-grouped split: train 71,520 / val 15,237 / test 15,009)
+- Binary test ROC AUC (best model: XGBoost): **0.8015**
+- Binary test F1 / Precision / Recall: **0.3661 / 0.2384 / 0.7884**
+- Imbalance handling: the pipeline benchmarks no-sampling vs over/under-sampling variants across model families and selected no-sampling XGBoost because it achieved the best test F1 (0.3661 vs best sampled 0.3645).
+
 ## Why This Project Matters
 
 30-day readmission is operationally and financially important in hospital systems. Predicting near-term readmission risk can inform discharge planning, triage, and follow-up workflows, while multiclass horizon prediction adds broader context (`NO`, `>30`, `<30`).
@@ -73,6 +80,7 @@ flowchart LR
 
 - **Expected local file:** `data/raw/diabetic_data.csv`
 - **Dataset lineage:** Diabetes 130-US hospitals style dataset usage (as documented in project materials).
+- **Row count:** `101,766` total encounters
 - **Primary target:** `readmitted`
 - **Binary target:** `readmitted_30d` (positive label `<30`)
 - **Multiclass labels:** `NO`, `>30`, `<30`
@@ -177,7 +185,8 @@ uv run streamlit run streamlit_app.py
 Latest committed comparison results (from `reports/model_comparison_report.md`):
 
 - **Binary best model:** XGBoost (`sampling=none`)
-- **Binary primary metric (F1):** `0.3661`
+- **Binary test ROC AUC:** `0.8015`
+- **Binary test F1 / Precision / Recall:** `0.3661 / 0.2384 / 0.7884`
 - **Multiclass best model:** XGBoost
 - **Multiclass primary metric (Macro F1):** `0.5250`
 
